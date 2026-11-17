@@ -1,4 +1,4 @@
-const CACHE_NAME = 'thinksend-v4';
+const CACHE_NAME = 'thinksend-v5';
 const CORE_ASSETS = ['./', './index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', (event) => {

@@ -52,8 +52,13 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-const initialHash = window.location.hash.replace('#', '') as TransferMode;
-const initialMode: TransferMode = initialHash === 'wlan' || initialHash === 'provider' ? initialHash : 'qr';
+const rawHash = window.location.hash.replace('#', '');
+const initialMode: TransferMode =
+  rawHash === 'wlan' || rawHash.startsWith('wlan-')
+    ? 'wlan'
+    : rawHash === 'provider'
+      ? 'provider'
+      : 'qr';
 switchMode(initialMode);
 requestAnimationFrame(() => document.body.classList.add('tabs-ready'));
 
