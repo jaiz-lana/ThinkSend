@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0b0f19" />
+    <title>ThinkSend — Transfer File Lintas Jalur</title>
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+    <script type="module" crossorigin src="./assets/index-_yW1xc2L.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-Dhz8x6yK.css">
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div class="brand">
+          <img src="./icon.svg" alt="ThinkSend" class="brand-icon" />
+          <div>
+            <h1>ThinkSend</h1>
+            <span class="subtitle">Transfer Cepat: QR • WLAN • Provider</span>
+          </div>
+        </div>
+        <span id="pwa-status" class="badge">PWA Ready</span>
+      </header>
+
+      <nav class="mode-tabs" role="tablist">
+        <button class="mode-tab active" data-mode="qr" role="tab">
+          <span class="tab-icon">📷</span>
+          <span class="tab-label">QR Optik</span>
+          <span class="tab-sub">100% Offline</span>
+        </button>
+        <button class="mode-tab" data-mode="wlan" role="tab">
+          <span class="tab-icon">📶</span>
+          <span class="tab-label">WLAN</span>
+          <span class="tab-sub">Wi-Fi Lokal</span>
+        </button>
+        <button class="mode-tab" data-mode="provider" role="tab">
+          <span class="tab-icon">🌐</span>
+          <span class="tab-label">Provider</span>
+          <span class="tab-sub">Internet P2P</span>
+        </button>
+      </nav>
+
+      <main id="mode-container" class="container"></main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "ThinkSend",
+  "short_name": "ThinkSend",
+  "description": "Transfer file cepat lintas jalur: QR Optik (Offline), WLAN Lokal, dan Jaringan Provider.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
