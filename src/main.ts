@@ -41,10 +41,15 @@ tabs.forEach((tab) => {
 
 // Register Service Worker for PWA
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {
-    const status = document.getElementById('pwa-status');
-    if (status) status.textContent = 'Web Mode';
-  });
+  navigator.serviceWorker
+    .register(`${import.meta.env.BASE_URL}sw.js`, { updateViaCache: 'none' })
+    .then((reg) => {
+      reg.update().catch(() => {});
+    })
+    .catch(() => {
+      const status = document.getElementById('pwa-status');
+      if (status) status.textContent = 'Web Mode';
+    });
 }
 
 const initialHash = window.location.hash.replace('#', '') as TransferMode;
