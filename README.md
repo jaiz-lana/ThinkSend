@@ -47,6 +47,10 @@ npm run build
 
 Hasil build akan dibuat di folder `dist/`. Workflow GitHub Actions ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) secara otomatis membangun bundel produksi dan men-deploy ke **GitHub Pages** setiap ada push ke branch `main`.
 
+## Laporkan Bug & Masukan
+
+Menemukan kendala tampilan, kamera QR, atau koneksi P2P? Silakan laporkan melalui tombol **Laporkan Bug** di bagian bawah aplikasi atau langsung buka [GitHub Issues](https://github.com/jaiz-lana/ThinkSend/issues).
+
 ## Rilis
 
 Setiap pembaruan versi dicatat di halaman [GitHub Releases](https://github.com/jaiz-lana/ThinkSend/releases).

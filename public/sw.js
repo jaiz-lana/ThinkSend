@@ -1,4 +1,4 @@
-const CACHE_NAME = 'thinksend-v3';
+const CACHE_NAME = 'thinksend-v4';
 const CORE_ASSETS = ['./', './index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -16,9 +16,10 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then(async (keys) => {
       const oldKeys = keys.filter((k) => k !== CACHE_NAME);
+      const needsHardRecovery = oldKeys.some((k) => k === 'thinksend-v1' || k === 'thinksend-v2');
       await Promise.all(oldKeys.map((k) => caches.delete(k)));
       await self.clients.claim();
-      if (oldKeys.length > 0) {
+      if (needsHardRecovery) {
         const windowClients = await self.clients.matchAll({ type: 'window' });
         await Promise.all(
           windowClients.map((client) => client.navigate(client.url).catch(() => {}))

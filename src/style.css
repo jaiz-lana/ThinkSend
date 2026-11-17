@@ -697,11 +697,19 @@ body {
 
 .about-footer {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
+  gap: 8px;
   margin-top: 6px;
 }
 
 .about-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
   border: 1px solid rgba(255, 255, 255, 0.35);
   background: rgba(24, 96, 152, 0.42);
   backdrop-filter: blur(8px);
@@ -709,14 +717,29 @@ body {
   color: #ffffff;
   font-size: 0.75rem;
   font-weight: 600;
+  line-height: 1.2;
   padding: 6px 14px;
   border-radius: 999px;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, transform 0.1s ease;
 }
 
 .about-pill-btn:hover {
   background: rgba(24, 96, 152, 0.6);
+}
+
+.about-pill-btn:active {
+  transform: scale(0.97);
+}
+
+.bug-pill-btn {
+  background: rgba(15, 76, 129, 0.56);
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.bug-pill-btn:hover {
+  background: rgba(185, 28, 28, 0.72);
+  border-color: rgba(254, 202, 202, 0.75);
 }
 
 .modal-backdrop {
@@ -820,7 +843,20 @@ body {
 
 .modal-actions {
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.modal-actions .btn {
+  flex: 1 1 120px;
+  text-decoration: none;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 0.84rem;
+}
+
+.modal-actions .modal-close-action {
+  flex: 0 1 88px;
 }
 
 @media (max-width: 480px) {
@@ -880,6 +916,10 @@ body {
   .role-switch .btn {
     font-size: 0.8rem;
     padding: 8px 8px;
+  }
+
+  .modal-actions .modal-close-action {
+    flex: 1 1 100%;
   }
 }
 
