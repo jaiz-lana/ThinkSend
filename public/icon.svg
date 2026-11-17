@@ -1,5 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#0b0f19"/>
-  <path d="M128 256L384 128L304 384L240 288L128 256Z" fill="#3b82f6"/>
-  <path d="M240 288L384 128L280 264L240 288Z" fill="#60a5fa"/>
+  <defs>
+    <linearGradient id="tg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#37AEE2" />
+      <stop offset="100%" stop-color="#1E96C8" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="120" fill="url(#tg-grad)" />
+  <path d="M114 252L394 134L332 386L238 304L114 252Z" fill="#FFFFFF" />
+  <path d="M238 304L394 134L204 274L238 304Z" fill="#D2EBF8" />
+  <path d="M238 304L224 374L274 334L238 304Z" fill="#B5DCF2" />
 </svg>

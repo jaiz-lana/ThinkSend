@@ -4,8 +4,8 @@
   "description": "Transfer file cepat lintas jalur: QR Optik (Offline), WLAN Lokal, dan Jaringan Provider.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#0b0f19",
-  "theme_color": "#3b82f6",
+  "background_color": "#E6F4FE",
+  "theme_color": "#2AABEE",
   "icons": [
     {
       "src": "./icon.svg",

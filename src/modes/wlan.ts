@@ -13,7 +13,17 @@ export function renderWlanMode(container: HTMLElement): () => void {
 
   container.innerHTML = `
     <div class="card">
-      <h2>📶 Transfer WLAN (Wi-Fi Lokal P2P)</h2>
+      <h2>
+        <span class="card-title-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12.55a11 11 0 0 1 14.08 0" />
+            <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+            <path d="M1.42 9a16 16 0 0 1 21.16 0" />
+            <circle cx="12" cy="19.5" r="1.2" fill="currentColor" stroke="none" />
+          </svg>
+        </span>
+        Transfer WLAN (Wi-Fi Lokal P2P)
+      </h2>
       <p class="desc">Transfer super cepat antar perangkat di jaringan Wi-Fi yang sama menggunakan WebRTC DataChannel (tanpa kuota internet).</p>
 
       <div class="alert alert-info">
@@ -31,8 +41,17 @@ export function renderWlanMode(container: HTMLElement): () => void {
   `;
 
   const body = document.getElementById('wlan-body')!;
+  const hostBtn = document.getElementById('wlan-host-btn') as HTMLButtonElement;
+  const joinBtn = document.getElementById('wlan-join-btn') as HTMLButtonElement;
 
-  document.getElementById('wlan-host-btn')!.onclick = async () => {
+  const setActiveRole = (isHost: boolean) => {
+    hostBtn.classList.toggle('btn-primary', isHost);
+    joinBtn.classList.toggle('btn-primary', !isHost);
+  };
+  setActiveRole(true);
+
+  hostBtn.onclick = async () => {
+    setActiveRole(true);
     cleanup();
     pc = new RTCPeerConnection({ iceServers: [] }); // Local WLAN only
     dc = pc.createDataChannel('thinksend-wlan', { ordered: true });
@@ -68,7 +87,8 @@ export function renderWlanMode(container: HTMLElement): () => void {
     };
   };
 
-  document.getElementById('wlan-join-btn')!.onclick = () => {
+  joinBtn.onclick = () => {
+    setActiveRole(false);
     cleanup();
     pc = new RTCPeerConnection({ iceServers: [] });
     pc.ondatachannel = (e) => {
@@ -121,6 +141,13 @@ function setupDataChannel(dc: RTCDataChannel, _container: HTMLElement, isSender:
         <div class="alert alert-success">✅ Terhubung via WLAN! Siap mengirim file.</div>
         <label class="file-drop">
           <input type="file" id="wlan-file-input" />
+          <span class="file-drop-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+          </span>
           <strong>Pilih File untuk Dikirim via WLAN</strong>
         </label>
         <div id="wlan-progress"></div>

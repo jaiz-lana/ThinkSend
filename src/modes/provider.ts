@@ -13,7 +13,16 @@ export function renderProviderMode(container: HTMLElement): () => void {
 
   container.innerHTML = `
     <div class="card">
-      <h2>🌐 Transfer Jaringan Provider (Internet P2P)</h2>
+      <h2>
+        <span class="card-title-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9.5" />
+            <path d="M2.5 12h19" />
+            <path d="M12 2.5a14.5 14.5 0 0 1 0 19 14.5 14.5 0 0 1 0-19Z" />
+          </svg>
+        </span>
+        Transfer Jaringan Provider (Internet P2P)
+      </h2>
       <p class="desc">Kirim file jarak jauh menggunakan koneksi data seluler/provider melalui WebRTC P2P terenkripsi.</p>
 
       <div class="role-switch">
@@ -26,11 +35,20 @@ export function renderProviderMode(container: HTMLElement): () => void {
   `;
 
   const body = document.getElementById('prov-body')!;
+  const hostBtn = document.getElementById('prov-host-btn') as HTMLButtonElement;
+  const joinBtn = document.getElementById('prov-join-btn') as HTMLButtonElement;
   const rtcConfig: RTCConfiguration = {
     iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
   };
 
-  document.getElementById('prov-host-btn')!.onclick = async () => {
+  const setActiveRole = (isHost: boolean) => {
+    hostBtn.classList.toggle('btn-primary', isHost);
+    joinBtn.classList.toggle('btn-primary', !isHost);
+  };
+  setActiveRole(true);
+
+  hostBtn.onclick = async () => {
+    setActiveRole(true);
     cleanup();
     pc = new RTCPeerConnection(rtcConfig);
     dc = pc.createDataChannel('thinksend-provider', { ordered: true });
@@ -66,7 +84,8 @@ export function renderProviderMode(container: HTMLElement): () => void {
     };
   };
 
-  document.getElementById('prov-join-btn')!.onclick = () => {
+  joinBtn.onclick = () => {
+    setActiveRole(false);
     cleanup();
     pc = new RTCPeerConnection(rtcConfig);
     pc.ondatachannel = (e) => {
@@ -119,6 +138,13 @@ function bindChannel(dc: RTCDataChannel, isSender: boolean) {
         <div class="alert alert-success">✅ Terhubung via Internet P2P!</div>
         <label class="file-drop">
           <input type="file" id="prov-file-input" />
+          <span class="file-drop-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+          </span>
           <strong>Pilih File untuk Dikirim</strong>
         </label>
         <div id="prov-progress"></div>

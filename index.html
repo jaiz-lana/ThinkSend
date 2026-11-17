@@ -3,43 +3,235 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#0b0f19" />
+    <meta name="theme-color" content="#2AABEE" />
+    <meta name="description" content="ThinkSend — Transfer file cepat lintas jalur: QR Optik, WLAN lokal, dan Provider P2P bertema terang Telegram dengan motif Batik Parang." />
     <title>ThinkSend — Transfer File Lintas Jalur</title>
     <link rel="manifest" href="./manifest.json" />
     <link rel="icon" type="image/svg+xml" href="./icon.svg" />
   </head>
   <body>
+    <!-- Telegram Light Wallpaper dengan Motif Batik Parang -->
+    <svg class="batik-bg" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="tg-sky-base" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#E7F4FE" />
+          <stop offset="35%" stop-color="#D3EAFC" />
+          <stop offset="68%" stop-color="#DCF2EE" />
+          <stop offset="100%" stop-color="#CEE7FB" />
+        </linearGradient>
+        <radialGradient id="tg-glow-1" cx="18%" cy="18%" r="55%">
+          <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.65" />
+          <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+        </radialGradient>
+        <radialGradient id="tg-glow-2" cx="85%" cy="78%" r="55%">
+          <stop offset="0%" stop-color="#B5DFFB" stop-opacity="0.45" />
+          <stop offset="100%" stop-color="#B5DFFB" stop-opacity="0" />
+        </radialGradient>
+
+        <g id="parang-motif">
+          <!-- Parang Blade Fill (halus seperti watermark wallpaper Telegram) -->
+          <path
+            class="parang-fill"
+            d="M 0 58 C 9 37, 22 12, 44 10 C 59 8, 65 19, 57 31 C 51 40, 44 44, 37 58 Z"
+          />
+          <!-- Kontur Utama Parang -->
+          <path
+            class="parang-stroke"
+            d="M 0 58 C 9 37, 22 12, 44 10 C 59 8, 65 19, 57 31 C 51 40, 44 44, 37 58"
+          />
+          <!-- Ukel / Spiral Kepala Parang -->
+          <path
+            class="parang-stroke"
+            d="M 45 17 C 54 15, 58 22, 53 29 C 49 34, 41 33, 41 26 C 41 22, 46 20, 49 23"
+          />
+          <!-- Isen-isen Garis Sejajar dalam Bilah Parang -->
+          <path class="parang-detail" d="M 9 57 C 16 40, 26 21, 40 17" />
+          <path class="parang-detail" d="M 16 57 C 22 42, 31 27, 41 24" />
+          <path class="parang-detail" d="M 23 57 C 29 45, 35 34, 42 32" />
+          <!-- Kembang / Tumpal Pengisi Antar Bilah & Cecek -->
+          <path class="parang-detail" d="M 37 58 C 41 49, 44 47, 46.5 47 C 49 47, 52 49, 56 58" />
+          <circle class="parang-dot" cx="46.5" cy="51.8" r="1.25" />
+          <circle class="parang-dot" cx="43.5" cy="55.3" r="1" />
+          <circle class="parang-dot" cx="49.5" cy="55.3" r="1" />
+          <path class="parang-detail" d="M 55 10 C 60 11, 63 14, 61 19" />
+          <circle class="parang-dot" cx="63.5" cy="12.5" r="1.1" />
+
+          <!-- Mlinjon Utama di Jalur Pembatas -->
+          <path
+            class="parang-fill-soft"
+            d="M 28 76 Q 32 82 39 86 Q 32 90 28 96 Q 24 90 17 86 Q 24 82 28 76 Z"
+          />
+          <path
+            class="parang-stroke"
+            d="M 28 76 Q 32 82 39 86 Q 32 90 28 96 Q 24 90 17 86 Q 24 82 28 76 Z"
+          />
+          <path class="parang-detail" d="M 28 80.5 L 33.5 86 L 28 91.5 L 22.5 86 Z" />
+          <circle class="parang-dot" cx="28" cy="86" r="1.3" />
+
+          <!-- Mlinjon Sekunder & Cecek di Tepi Tile -->
+          <path class="parang-fill-soft" d="M 0 80 L 6 86 L 0 92 L -6 86 Z" />
+          <path class="parang-detail" d="M 0 80 L 6 86 L 0 92 L -6 86 Z" />
+          <circle class="parang-dot" cx="0" cy="86" r="1.1" />
+          <circle class="parang-dot" cx="11.5" cy="86" r="1.1" />
+          <circle class="parang-dot" cx="44.5" cy="86" r="1.1" />
+          <circle class="parang-dot" cx="14" cy="79" r="0.9" />
+          <circle class="parang-dot" cx="14" cy="93" r="0.9" />
+          <circle class="parang-dot" cx="42" cy="79" r="0.9" />
+          <circle class="parang-dot" cx="42" cy="93" r="0.9" />
+        </g>
+
+        <pattern
+          id="batik-parang"
+          width="56"
+          height="104"
+          patternUnits="userSpaceOnUse"
+          patternTransform="rotate(-45)"
+        >
+          <!-- Garis Tepi Kembar Pengikat Band Parang -->
+          <line class="parang-border" x1="-10" y1="3" x2="66" y2="3" />
+          <line class="parang-border" x1="-10" y1="6" x2="66" y2="6" />
+          <line class="parang-border" x1="-10" y1="62" x2="66" y2="62" />
+          <line class="parang-border" x1="-10" y1="65" x2="66" y2="65" />
+
+          <!-- Pengulangan seamless kiri-tengah-kanan -->
+          <use href="#parang-motif" x="-56" y="0" />
+          <use href="#parang-motif" x="0" y="0" />
+          <use href="#parang-motif" x="56" y="0" />
+        </pattern>
+      </defs>
+
+      <rect width="100%" height="100%" fill="url(#tg-sky-base)" />
+      <rect width="100%" height="100%" fill="url(#tg-glow-1)" />
+      <rect width="100%" height="100%" fill="url(#tg-glow-2)" />
+      <rect width="100%" height="100%" fill="url(#batik-parang)" />
+    </svg>
+
     <div id="app">
-      <header class="topbar">
-        <div class="brand">
-          <img src="./icon.svg" alt="ThinkSend" class="brand-icon" />
-          <div>
-            <h1>ThinkSend</h1>
-            <span class="subtitle">Transfer Cepat: QR • WLAN • Provider</span>
+      <div class="tg-chrome">
+        <header class="topbar">
+          <div class="topbar-inner">
+            <div class="brand">
+              <img src="./icon.svg" alt="ThinkSend" class="brand-icon" />
+              <div class="brand-meta">
+                <div class="brand-title-row">
+                  <h1>ThinkSend</h1>
+                  <svg class="verified-badge" viewBox="0 0 24 24" aria-hidden="true" title="Terverifikasi">
+                    <path
+                      fill="currentColor"
+                      d="M12 2L14.8 3.6L18 3.4L19.4 6.3L22.2 8L21.5 11.2L22.8 14.2L20.4 16.4L20.1 19.6L17 20.4L14.8 22.8L11.7 21.8L8.6 22.8L6.4 20.4L3.3 19.6L3 16.4L0.6 14.2L1.9 11.2L1.2 8L4 6.3L5.4 3.4L8.6 3.6L12 2Z"
+                      opacity="0.28"
+                    />
+                    <circle cx="12" cy="12" r="9" fill="#FFFFFF" />
+                    <path
+                      fill="#2AABEE"
+                      d="M10.4 15.6L7.2 12.4L8.5 11.1L10.4 13L15.6 7.8L16.9 9.1L10.4 15.6Z"
+                    />
+                  </svg>
+                </div>
+                <span class="subtitle">Transfer Cepat: QR • WLAN • Provider</span>
+              </div>
+            </div>
+            <div class="topbar-actions">
+              <span id="pwa-status" class="badge">PWA Ready</span>
+              <button id="about-open-btn" class="icon-btn" type="button" aria-label="Tentang ThinkSend" title="Tentang ThinkSend">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9.5" />
+                  <path d="M12 16v-4" />
+                  <circle cx="12" cy="8.2" r="0.8" fill="currentColor" stroke="none" />
+                </svg>
+              </button>
+            </div>
           </div>
+        </header>
+
+        <nav class="mode-tabs" role="tablist" aria-label="Mode Transfer">
+          <div class="mode-tabs-inner">
+            <button class="mode-tab" data-mode="qr" role="tab" aria-selected="false">
+              <span class="tab-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                  <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                  <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                  <path d="M14 14h3v3h-3zM20 14v3M14 20h7M17 17h3v3" />
+                </svg>
+              </span>
+              <span class="tab-label">QR Optik</span>
+              <span class="tab-sub">100% Offline</span>
+            </button>
+            <button class="mode-tab" data-mode="wlan" role="tab" aria-selected="false">
+              <span class="tab-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12.55a11 11 0 0 1 14.08 0" />
+                  <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+                  <path d="M1.42 9a16 16 0 0 1 21.16 0" />
+                  <circle cx="12" cy="19.5" r="1.2" fill="currentColor" stroke="none" />
+                </svg>
+              </span>
+              <span class="tab-label">WLAN</span>
+              <span class="tab-sub">Wi-Fi Lokal</span>
+            </button>
+            <button class="mode-tab" data-mode="provider" role="tab" aria-selected="false">
+              <span class="tab-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="9.5" />
+                  <path d="M2.5 12h19" />
+                  <path d="M12 2.5a14.5 14.5 0 0 1 0 19 14.5 14.5 0 0 1 0-19Z" />
+                </svg>
+              </span>
+              <span class="tab-label">Provider</span>
+              <span class="tab-sub">Internet P2P</span>
+            </button>
+          </div>
+        </nav>
+      </div>
+
+      <div class="chat-stage">
+        <div class="tg-date-pill">
+          <span>
+            <svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="4" y="11" width="16" height="10" rx="2.5" />
+              <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+            </svg>
+            Transfer P2P Terenkripsi • Batik Parang
+          </span>
         </div>
-        <span id="pwa-status" class="badge">PWA Ready</span>
-      </header>
+        <main id="mode-container" class="container"></main>
+        <footer class="about-footer">
+          <button id="about-footer-btn" class="about-pill-btn" type="button">
+            ThinkSend v0.2.0 • Tentang Aplikasi
+          </button>
+        </footer>
+      </div>
+    </div>
 
-      <nav class="mode-tabs" role="tablist">
-        <button class="mode-tab active" data-mode="qr" role="tab">
-          <span class="tab-icon">📷</span>
-          <span class="tab-label">QR Optik</span>
-          <span class="tab-sub">100% Offline</span>
-        </button>
-        <button class="mode-tab" data-mode="wlan" role="tab">
-          <span class="tab-icon">📶</span>
-          <span class="tab-label">WLAN</span>
-          <span class="tab-sub">Wi-Fi Lokal</span>
-        </button>
-        <button class="mode-tab" data-mode="provider" role="tab">
-          <span class="tab-icon">🌐</span>
-          <span class="tab-label">Provider</span>
-          <span class="tab-sub">Internet P2P</span>
-        </button>
-      </nav>
-
-      <main id="mode-container" class="container"></main>
+    <div id="about-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="about-title" hidden>
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-brand">
+            <img src="./icon.svg" alt="ThinkSend" class="modal-logo" />
+            <div>
+              <h2 id="about-title">ThinkSend</h2>
+              <span class="modal-version">Versi 0.2.0 • PWA Offline-First</span>
+            </div>
+          </div>
+          <button id="about-close-btn" class="modal-close" type="button" aria-label="Tutup">&times;</button>
+        </div>
+        <p class="modal-desc">
+          Aplikasi web transfer file cepat lintas jalur secara langsung antar perangkat tanpa server penyimpanan file,
+          menggunakan antarmuka terang bergaya Telegram dengan motif Batik Parang.
+        </p>
+        <ul class="about-list">
+          <li><strong>QR Optik:</strong> Transfer 100% offline via layar &amp; kamera dengan verifikasi SHA-256.</li>
+          <li><strong>WLAN:</strong> Transfer P2P di Wi-Fi lokal melalui WebRTC DataChannel tanpa kuota.</li>
+          <li><strong>Provider:</strong> Transfer P2P jarak jauh terenkripsi melalui jaringan internet.</li>
+        </ul>
+        <div class="modal-actions">
+          <a href="https://github.com/jaiz-lana/ThinkSend" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="text-decoration:none;flex:1;">
+            Lihat di GitHub
+          </a>
+          <button id="about-ok-btn" type="button" class="btn" style="flex:1;">Tutup</button>
+        </div>
+      </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

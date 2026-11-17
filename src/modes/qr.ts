@@ -30,11 +30,34 @@ export function renderQrMode(container: HTMLElement): () => void {
     stopAll();
     container.innerHTML = `
       <div class="card">
-        <h2>📷 Transfer QR Optik (100% Offline)</h2>
+        <h2>
+          <span class="card-title-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1.5" />
+              <rect x="14" y="3" width="7" height="7" rx="1.5" />
+              <rect x="3" y="14" width="7" height="7" rx="1.5" />
+              <path d="M14 14h3v3h-3zM20 14v3M14 20h7M17 17h3v3" />
+            </svg>
+          </span>
+          Transfer QR Optik (100% Offline)
+        </h2>
         <p class="desc">Kirim file melalui cahaya layar ke kamera tanpa Wi-Fi, Bluetooth, atau kuota internet.</p>
         <div class="role-switch">
-          <button id="qr-role-send" class="btn ${role === 'send' ? 'btn-primary' : ''}">📤 Kirim File</button>
-          <button id="qr-role-recv" class="btn ${role === 'receive' ? 'btn-primary' : ''}">📥 Terima File</button>
+          <button id="qr-role-send" class="btn ${role === 'send' ? 'btn-primary' : ''}">
+            <svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M22 2 11 13" />
+              <path d="M22 2 15 22 11 13 2 9 22 2z" />
+            </svg>
+            Kirim File
+          </button>
+          <button id="qr-role-recv" class="btn ${role === 'receive' ? 'btn-primary' : ''}">
+            <svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Terima File
+          </button>
         </div>
         <div id="qr-body"></div>
       </div>
@@ -61,8 +84,15 @@ export function renderQrMode(container: HTMLElement): () => void {
     body.innerHTML = `
       <label class="file-drop">
         <input type="file" id="qr-file-input" />
+        <span class="file-drop-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+        </span>
         <strong style="font-size:0.95rem;">Pilih File untuk Dikirim</strong>
-        <span style="font-size:0.78rem;color:var(--muted);margin-top:4px;">Disarankan &lt; 2 MB untuk transfer QR tercepat</span>
+        <span style="font-size:0.78rem;color:var(--muted);margin-top:2px;">Disarankan &lt; 2 MB untuk transfer QR tercepat</span>
       </label>
       <div id="qr-send-status"></div>
     `;

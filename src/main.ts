@@ -16,7 +16,11 @@ function switchMode(mode: TransferMode) {
     cleanupCurrentMode = null;
   }
 
-  tabs.forEach((t) => t.classList.toggle('active', t.dataset.mode === mode));
+  tabs.forEach((t) => {
+    const isActive = t.dataset.mode === mode;
+    t.classList.toggle('active', isActive);
+    t.setAttribute('aria-selected', String(isActive));
+  });
   container.innerHTML = '';
 
   if (mode === 'qr') {
@@ -43,4 +47,27 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-switchMode('qr');
+const initialHash = window.location.hash.replace('#', '') as TransferMode;
+const initialMode: TransferMode = initialHash === 'wlan' || initialHash === 'provider' ? initialHash : 'qr';
+switchMode(initialMode);
+requestAnimationFrame(() => document.body.classList.add('tabs-ready'));
+
+// About Modal
+const aboutModal = document.getElementById('about-modal');
+const openAbout = () => {
+  if (aboutModal) aboutModal.hidden = false;
+};
+const closeAbout = () => {
+  if (aboutModal) aboutModal.hidden = true;
+};
+
+document.getElementById('about-open-btn')?.addEventListener('click', openAbout);
+document.getElementById('about-footer-btn')?.addEventListener('click', openAbout);
+document.getElementById('about-close-btn')?.addEventListener('click', closeAbout);
+document.getElementById('about-ok-btn')?.addEventListener('click', closeAbout);
+aboutModal?.addEventListener('click', (e) => {
+  if (e.target === aboutModal) closeAbout();
+});
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && aboutModal && !aboutModal.hidden) closeAbout();
+});
