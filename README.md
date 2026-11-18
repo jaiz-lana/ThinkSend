@@ -63,3 +63,9 @@ Menemukan kendala tampilan, kamera QR, atau koneksi P2P? Silakan laporkan melalu
 ## Rilis
 
 Setiap pembaruan versi dicatat di halaman [GitHub Releases](https://github.com/jaiz-lana/ThinkSend/releases).
+
+## 💖 Dukung Proyek Ini
+
+Jika **ThinkSend** bermanfaat bagi Anda, dukungan Anda melalui **Saweria** akan sangat membantu pengembangan dan pemeliharaan proyek ini:
+
+[![Dukung via Saweria](https://img.shields.io/badge/💖%20Dukung%20via-Saweria-FAAD14?style=for-the-badge)](https://saweria.co/jaizlana)
