@@ -51,6 +51,56 @@ export type RelayStatus = {
   lastError?: string;
 };
 
+export type CustomWsValidation =
+  | { valid: true; url: string }
+  | { valid: false; reason: string };
+
+export function validateCustomWsUrl(
+  raw: string,
+  pageProtocol = typeof window !== 'undefined' ? window.location.protocol : 'https:'
+): CustomWsValidation {
+  const trimmed = raw.trim();
+  if (!trimmed) return { valid: true, url: '' };
+
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    return {
+      valid: false,
+      reason: 'Format URL WebSocket tidak valid. Gunakan format wss://nama-server.contoh',
+    };
+  }
+
+  if (parsed.protocol !== 'wss:' && parsed.protocol !== 'ws:') {
+    return {
+      valid: false,
+      reason: `Protokol "${parsed.protocol}" tidak didukung WebSocket. Gunakan wss:// atau kosongkan untuk Relay Default.`,
+    };
+  }
+
+  if (!parsed.hostname) {
+    return {
+      valid: false,
+      reason: 'Alamat server WebSocket tidak boleh kosong.',
+    };
+  }
+
+  const isLoopback =
+    parsed.hostname === 'localhost' ||
+    parsed.hostname === '127.0.0.1' ||
+    parsed.hostname === '[::1]';
+  if (pageProtocol === 'https:' && parsed.protocol === 'ws:' && !isLoopback) {
+    return {
+      valid: false,
+      reason:
+        'Halaman HTTPS hanya mengizinkan wss:// (aman). Kosongkan kolom ini untuk memakai Relay Default.',
+    };
+  }
+
+  return { valid: true, url: trimmed };
+}
+
 const DEVICE_ADJ = [
   'Biru',
   'Perak',
@@ -309,6 +359,7 @@ export class ThinkSendSignalingRoom {
 
   private sockets = new Map<string, WebSocket>();
   private customWs: WebSocket | null = null;
+  private customWsError?: string;
   private closed = false;
   private closing = false;
   private subId = `ts-${randomId(6)}`;
@@ -735,10 +786,22 @@ export class ThinkSendSignalingRoom {
 
   private connectCustomWs(url: string): void {
     if (this.closed || this.closing) return;
+    const validation = validateCustomWsUrl(url);
+    if (!validation.valid) {
+      this.customWsError = validation.reason;
+      this.emitStatus(validation.reason);
+      return;
+    }
+
     try {
-      const ws = new WebSocket(url);
+      const ws = new WebSocket(validation.url);
       this.customWs = ws;
       ws.onopen = () => {
+        if (this.closed || this.closing) {
+          ws.close();
+          return;
+        }
+        this.customWsError = undefined;
         ws.send(JSON.stringify({ type: 'join', topic: this.topicHash }));
         this.emitStatus();
         void this.broadcastPresence(false);
@@ -755,16 +818,27 @@ export class ThinkSendSignalingRoom {
         }
       };
       ws.onerror = () => {
-        this.emitStatus('Gagal terhubung ke server WebSocket kustom');
+        if (this.closed || this.closing) return;
+        this.customWsError = 'Gagal terhubung ke server WebSocket kustom';
+        this.emitStatus(this.customWsError);
       };
       ws.onclose = () => {
-        this.emitStatus();
+        if (this.customWs === ws) this.customWs = null;
         if (this.closed || this.closing) return;
-        const tid = window.setTimeout(() => this.connectCustomWs(url), 4000);
+        this.emitStatus(
+          this.customWsError ?? 'Koneksi ke server WebSocket kustom terputus, mencoba lagi...'
+        );
+        const tid = window.setTimeout(() => this.connectCustomWs(validation.url), 4000);
         this.reconnectTimers.set('custom', tid);
       };
-    } catch {
-      this.emitStatus('URL WebSocket kustom tidak valid');
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'SecurityError') {
+        this.customWsError =
+          'Koneksi ws:// diblokir browser pada halaman HTTPS. Gunakan wss:// atau Relay Default.';
+      } else {
+        this.customWsError = 'URL WebSocket kustom tidak valid (harus diawali wss://).';
+      }
+      this.emitStatus(this.customWsError);
     }
   }
 }

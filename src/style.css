@@ -877,22 +877,24 @@ progress.ts-progress::-moz-progress-bar {
 }
 
 .input-group textarea,
-.input-group input[type='text'] {
+.input-group input[type='text'],
+.input-group input[type='url'] {
   width: 100%;
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1.5px solid #d8e1eb;
+  border: 1.5px solid #cbd5e1;
   background: #fafbfd;
   color: var(--text-strong);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.81rem;
+  font-size: 0.84rem;
   line-height: 1.45;
   resize: vertical;
   transition: border-color 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
 }
 
 .input-group textarea:focus,
-.input-group input[type='text']:focus {
+.input-group input[type='text']:focus,
+.input-group input[type='url']:focus {
   outline: none;
   background: #ffffff;
   border-color: var(--primary-ink);
@@ -900,8 +902,46 @@ progress.ts-progress::-moz-progress-bar {
 }
 
 .input-group textarea::placeholder,
-.input-group input[type='text']::placeholder {
+.input-group input[type='text']::placeholder,
+.input-group input[type='url']::placeholder {
   color: #64748b;
+}
+
+.input-group :is(input[type='text'], input[type='url']):is(:user-invalid, .user-invalid-fallback) {
+  border-color: var(--danger);
+  background: #fef2f2;
+}
+
+.input-group :is(input[type='text'], input[type='url']):user-valid:not(:placeholder-shown) {
+  border-color: var(--success);
+}
+
+.field-hint {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--muted);
+  line-height: 1.42;
+}
+
+.field-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 2px;
+  padding: 7px 10px;
+  border-radius: 9px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+@media (pointer: coarse) {
+  input[type='text'],
+  input[type='url'] {
+    font-size: max(1rem, 1em);
+  }
 }
 
 .topbar-actions {
@@ -1299,7 +1339,13 @@ dialog.ts-dialog::backdrop {
 .status-strip {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-bottom: 10px;
+}
+
+#wlan-relay-actions:empty {
+  display: none;
 }
 
 .relay-pill {
@@ -1309,7 +1355,7 @@ dialog.ts-dialog::backdrop {
   font-size: 0.76rem;
   font-weight: 600;
   padding: 5px 11px;
-  border-radius: 999px;
+  border-radius: 14px;
   line-height: 1.35;
 }
 
@@ -1828,9 +1874,16 @@ dialog.ts-dialog::backdrop {
   line-height: 1.48;
 }
 
-.advanced-box input[type='text'] {
+.ws-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.advanced-box input[type='text'],
+.advanced-box input[type='url'] {
   min-width: 0;
-  flex: 1 1 160px;
+  flex: 1 1 200px;
 }
 
 .offline-qr-panel {

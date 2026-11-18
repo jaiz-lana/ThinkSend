@@ -12,7 +12,7 @@
   Transfer file melalui cahaya layar ke kamera menggunakan rangkaian kode QR beruntun (*animated QR stream*) lengkap dengan dukungan seret &amp; lepas (*drag & drop*) serta verifikasi integritas **SHA-256** (`qrcode`, `jsqr`, dan `BarcodeDetector`).
 - **📶 WLAN (Wi-Fi Lokal P2P)**
   Disederhanakan dalam 3 pilihan langsung di menu **WLAN**:
-  - **Wi-Fi Sekitar**: Deteksi otomatis perangkat lain di Wi-Fi yang sama (*IP* publik di-hash lokal `SHA-256`, dilengkapi filter identitas perangkat persisten untuk mencegah perangkat mendeteksi dirinya sendiri — Issue #1). Jika Wi-Fi sedang tanpa akses internet, tersedia pintasan langsung ke **Tanpa Internet**.
+  - **Wi-Fi Sekitar**: Deteksi otomatis perangkat lain di Wi-Fi yang sama (*IP* publik di-hash lokal `SHA-256`, dilengkapi filter identitas perangkat persisten untuk mencegah perangkat mendeteksi dirinya sendiri — Issue #1). Jika Wi-Fi sedang tanpa akses internet, tersedia pintasan langsung ke **Tanpa Internet**; serta validasi &amp; pemulihan otomatis ke Relay Default jika URL WebSocket kustom tersimpan tidak valid.
   - **Kode Ruang**: Buat kode ruang privat 6 karakter, salin kode/tautan, atau scan QR ruang (`#wlan-room=...`) agar aman di Wi-Fi publik, *CGNAT*, atau lintas jaringan.
   - **Tanpa Internet**: Transfer 100% tanpa internet sama sekali di router/hotspot lokal melalui scan QR Offer ↔ Answer terkompresi (*single-frame QR*) atau salin-tempel teks manual.
 - **🌐 Provider (Internet P2P)**

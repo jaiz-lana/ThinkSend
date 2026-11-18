@@ -18,6 +18,7 @@ import {
   normalizeRoomCode,
   saveAlias,
   ThinkSendSignalingRoom,
+  validateCustomWsUrl,
   type DirectSignalPayload,
   type RelayStatus,
   type SignalingPeer,
@@ -48,8 +49,18 @@ export function renderWlanMode(container: HTMLElement): () => void {
   let requirePin = false;
   let receiverPin = generateDefaultPin();
   let customWsUrl = '';
+  let recoveredInvalidWsNote = '';
   try {
-    customWsUrl = localStorage.getItem(CUSTOM_WS_STORAGE_KEY) ?? '';
+    const savedWs = localStorage.getItem(CUSTOM_WS_STORAGE_KEY) ?? '';
+    if (savedWs.trim()) {
+      const check = validateCustomWsUrl(savedWs);
+      if (check.valid) {
+        customWsUrl = check.url;
+      } else {
+        recoveredInvalidWsNote = check.reason;
+        localStorage.removeItem(CUSTOM_WS_STORAGE_KEY);
+      }
+    }
   } catch {
     // Ignore storage restriction
   }
@@ -58,6 +69,8 @@ export function renderWlanMode(container: HTMLElement): () => void {
   let discoveryGen = 0;
   let currentRoomCode = '';
   let radarFailed = false;
+  let relayTimedOut = false;
+  let relayTimeoutTimer: number | null = null;
   let peers: SignalingPeer[] = [];
   let relayStatus: RelayStatus = { connectedRelays: 0, targetRelays: 4, mode: 'nostr' };
 
@@ -102,6 +115,14 @@ export function renderWlanMode(container: HTMLElement): () => void {
     }
   }
 
+  function clearRelayTimeout() {
+    if (relayTimeoutTimer !== null) {
+      clearTimeout(relayTimeoutTimer);
+      relayTimeoutTimer = null;
+    }
+    relayTimedOut = false;
+  }
+
   function revokeAllObjectUrls() {
     while (createdObjectUrls.length > 0) {
       const u = createdObjectUrls.pop();
@@ -127,6 +148,7 @@ export function renderWlanMode(container: HTMLElement): () => void {
   }
 
   async function cleanupSignaling() {
+    clearRelayTimeout();
     peers = [];
     if (signalingRoom) {
       const room = signalingRoom;
@@ -138,6 +160,7 @@ export function renderWlanMode(container: HTMLElement): () => void {
   function cleanupAll() {
     destroyed = true;
     discoveryGen++;
+    clearRelayTimeout();
     cleanupWebRtcSession();
     void cleanupSignaling();
     revokeAllObjectUrls();
@@ -302,27 +325,29 @@ export function renderWlanMode(container: HTMLElement): () => void {
               Kode Cocok Sesi: <strong>${escapeHtml(sasCode)}</strong> &bull;
               ${attempt > 1 ? `<span style="color:var(--danger);">PIN salah! Sisa percobaan: ${remaining}</span>` : 'Masukkan PIN 4 digit yang tampil di layar penerima.'}
             </p>
-            <div class="pin-input-row">
+            <form class="pin-input-row" novalidate>
               <label for="wlan-remote-pin-field" class="visually-hidden">PIN 4 digit penerima</label>
-              <input id="wlan-remote-pin-field" class="wlan-remote-pin-in" type="text" inputmode="numeric" maxlength="8" placeholder="PIN 4 digit..." />
-              <button type="button" class="btn btn-primary wlan-remote-pin-ok">Verifikasi</button>
+              <input id="wlan-remote-pin-field" name="remotePin" class="wlan-remote-pin-in" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="done" maxlength="8" placeholder="PIN 4 digit..." />
+              <button type="submit" class="btn btn-primary wlan-remote-pin-ok">Verifikasi</button>
               <button type="button" class="btn wlan-remote-pin-cancel">Batal</button>
-            </div>
+            </form>
           </div>
         `;
+        const form = pinPromptArea.querySelector('form') as HTMLFormElement;
         const input = pinPromptArea.querySelector('.wlan-remote-pin-in') as HTMLInputElement;
-        const okBtn = pinPromptArea.querySelector('.wlan-remote-pin-ok') as HTMLButtonElement;
         const cancelBtn = pinPromptArea.querySelector('.wlan-remote-pin-cancel') as HTMLButtonElement;
         input.focus();
-        const submit = () => {
+        form.onsubmit = (e) => {
+          e.preventDefault();
           const val = input.value.trim();
           if (!val) return;
           pinPromptArea.innerHTML = '';
           resolve(val);
         };
-        okBtn.onclick = submit;
         input.onkeydown = (e) => {
-          if (e.key === 'Enter') submit();
+          if (e.key === 'Enter' && (e.isComposing || e.keyCode === 229)) {
+            e.preventDefault();
+          }
         };
         cancelBtn.onclick = () => {
           pinPromptArea.innerHTML = '';
@@ -814,25 +839,61 @@ export function renderWlanMode(container: HTMLElement): () => void {
     };
   }
 
+  function resetCustomWsToDefault() {
+    customWsUrl = '';
+    recoveredInvalidWsNote = '';
+    try {
+      localStorage.removeItem(CUSTOM_WS_STORAGE_KEY);
+    } catch {
+      // Ignore storage restriction
+    }
+    renderAutoView(activeView === 'room' ? 'room' : 'radar');
+  }
+
   function renderRelayStatusBadge() {
     const el = document.getElementById('wlan-relay-status');
+    const actionsEl = document.getElementById('wlan-relay-actions');
     if (!el) return;
+    if (actionsEl) actionsEl.innerHTML = '';
+
     if (radarFailed && activeView === 'radar') {
       el.className = 'relay-pill relay-wait';
       el.textContent = 'Radar butuh internet • Gunakan Tanpa Internet jika offline';
       return;
     }
+
     if (relayStatus.connectedRelays > 0) {
       el.className = 'relay-pill relay-ok';
       el.textContent =
         relayStatus.mode === 'custom-ws'
           ? 'Siap • Terhubung ke Relay Kustom (E2EE)'
           : `Siap Menerima & Mengirim (${relayStatus.connectedRelays}/${relayStatus.targetRelays} jalur E2EE)`;
-    } else {
-      el.className = 'relay-pill relay-wait';
-      el.textContent =
-        relayStatus.lastError ?? 'Menghubungkan pencari perangkat...';
+      return;
     }
+
+    el.className = 'relay-pill relay-wait';
+    if (customWsUrl || relayStatus.mode === 'custom-ws') {
+      el.textContent = relayStatus.lastError ?? 'Menghubungkan Relay WebSocket Kustom...';
+      if (actionsEl) {
+        actionsEl.innerHTML = `<button id="wlan-reset-ws-inline" type="button" class="mini-link-btn">Pakai Relay Default</button>`;
+        document.getElementById('wlan-reset-ws-inline')?.addEventListener('click', resetCustomWsToDefault);
+      }
+      return;
+    }
+
+    if (relayTimedOut) {
+      el.textContent = 'Relay sulit dijangkau • Pakai Tanpa Internet jika Wi-Fi offline';
+      if (actionsEl) {
+        actionsEl.innerHTML = `<button id="wlan-relay-jump-offline" type="button" class="mini-link-btn">Tanpa Internet</button>`;
+        document.getElementById('wlan-relay-jump-offline')?.addEventListener('click', () => {
+          activeView = 'offline';
+          renderCurrentView();
+        });
+      }
+      return;
+    }
+
+    el.textContent = relayStatus.lastError ?? 'Menghubungkan pencari perangkat...';
   }
 
   function renderAutoPeerList() {
@@ -985,6 +1046,15 @@ export function renderWlanMode(container: HTMLElement): () => void {
     cleanupWebRtcSession();
     if (destroyed || myGen !== discoveryGen || activeView === 'offline') return;
 
+    relayTimedOut = false;
+    if (!customWsUrl) {
+      relayTimeoutTimer = window.setTimeout(() => {
+        if (destroyed || myGen !== discoveryGen || relayStatus.connectedRelays > 0) return;
+        relayTimedOut = true;
+        renderRelayStatusBadge();
+      }, 10_000);
+    }
+
     const room = new ThinkSendSignalingRoom({
       alias,
       requirePin,
@@ -1001,6 +1071,9 @@ export function renderWlanMode(container: HTMLElement): () => void {
       },
       onStatus: (status) => {
         if (destroyed || myGen !== discoveryGen) return;
+        if (status.connectedRelays > 0) {
+          clearRelayTimeout();
+        }
         relayStatus = status;
         renderRelayStatusBadge();
       },
@@ -1100,16 +1173,16 @@ export function renderWlanMode(container: HTMLElement): () => void {
         </label>
       </div>
 
-      <div id="wlan-alias-editor" class="pin-config-bar" hidden>
+      <form id="wlan-alias-editor" class="pin-config-bar" hidden novalidate>
         <label for="wlan-alias-input">Nama Baru:</label>
-        <input id="wlan-alias-input" type="text" maxlength="28" value="${escapeHtml(alias)}" placeholder="Contoh: HP Budi" />
-        <button id="wlan-alias-save" type="button" class="mini-link-btn">Simpan</button>
+        <input id="wlan-alias-input" name="alias" type="text" maxlength="28" autocomplete="off" enterkeyhint="done" value="${escapeHtml(alias)}" placeholder="Contoh: HP Budi" />
+        <button id="wlan-alias-save" type="submit" class="mini-link-btn">Simpan</button>
         <button id="wlan-alias-cancel" type="button" class="mini-link-btn">Batal</button>
-      </div>
+      </form>
 
       <div id="wlan-pin-config" class="pin-config-bar" ${requirePin ? '' : 'hidden'}>
         <label for="wlan-pin-value">PIN Keamanan Penerima:</label>
-        <input id="wlan-pin-value" type="text" inputmode="numeric" maxlength="8" value="${escapeHtml(receiverPin)}" />
+        <input id="wlan-pin-value" type="text" inputmode="numeric" autocomplete="off" maxlength="8" value="${escapeHtml(receiverPin)}" />
         <button id="wlan-pin-regen" type="button" class="mini-link-btn">Acak</button>
       </div>
 
@@ -1117,8 +1190,19 @@ export function renderWlanMode(container: HTMLElement): () => void {
       <div id="wlan-auto-session"></div>
       <div id="wlan-discovery-panel"></div>
 
+      ${
+        recoveredInvalidWsNote
+          ? `<div id="wlan-ws-recovered" class="alert alert-info" role="status" style="align-items:center;">
+               <span aria-hidden="true">ℹ️</span>
+               <div style="flex:1;">URL WebSocket kustom tersimpan sebelumnya tidak valid (${escapeHtml(recoveredInvalidWsNote)}), sehingga dikembalikan otomatis ke <strong>Relay Default</strong>.</div>
+               <button id="wlan-dismiss-recovered" type="button" class="mini-link-btn">Tutup</button>
+             </div>`
+          : ''
+      }
+
       <div class="status-strip">
         <span id="wlan-relay-status" class="relay-pill relay-wait">Menghubungkan pencari perangkat...</span>
+        <span id="wlan-relay-actions"></span>
       </div>
 
       <div id="wlan-peer-list" class="peer-list"></div>
@@ -1128,19 +1212,44 @@ export function renderWlanMode(container: HTMLElement): () => void {
         <p>
           Alamat IP publik untuk Radar hanya di-hash lokal (SHA-256), pesan sinyal memakai relay ephemeral terenkripsi tanpa penyimpanan file, dan data dikirim langsung peramban-ke-peramban dengan WebRTC DTLS + ECDH AES-256-GCM.
         </p>
-        <div class="input-group" style="margin-bottom:0;margin-top:8px;">
-          <label for="wlan-custom-ws">Custom WebSocket Signaling URL (Opsional):</label>
-          <div style="display:flex;gap:8px;">
-            <input id="wlan-custom-ws" type="text" value="${escapeHtml(customWsUrl)}" placeholder="Kosongkan untuk default relay gratis" />
-            <button id="wlan-save-ws" type="button" class="btn">Simpan</button>
+        <form id="wlan-ws-form" class="input-group ws-form" style="margin-bottom:0;margin-top:10px;" novalidate>
+          <label for="wlan-custom-ws">Server WebSocket Sendiri / Custom (Opsional, lanjutan):</label>
+          <span id="wlan-ws-hint" class="field-hint">
+            Kosongkan untuk memakai relay publik E2EE bawaan ThinkSend. Hanya isi jika menjalankan server WebSocket sendiri (harus diawali <code>wss://</code>).
+          </span>
+          <div class="ws-form-row">
+            <input
+              id="wlan-custom-ws"
+              name="customWsUrl"
+              type="url"
+              inputmode="url"
+              autocomplete="off"
+              autocapitalize="none"
+              autocorrect="off"
+              spellcheck="false"
+              enterkeyhint="done"
+              value="${escapeHtml(customWsUrl)}"
+              placeholder="wss://relay.anda.com (kosongkan = default)"
+              aria-describedby="wlan-ws-hint"
+              aria-invalid="false"
+              data-error="wlan-custom-ws-err"
+            />
+            <button id="wlan-save-ws" type="submit" class="btn">Simpan</button>
+            <button id="wlan-reset-ws" type="button" class="btn" ${customWsUrl ? '' : 'hidden'}>Reset Default</button>
           </div>
-        </div>
+          <div id="wlan-custom-ws-err" class="field-error" hidden></div>
+        </form>
       </details>
     `;
 
+    document.getElementById('wlan-dismiss-recovered')?.addEventListener('click', () => {
+      recoveredInvalidWsNote = '';
+      document.getElementById('wlan-ws-recovered')?.remove();
+    });
+
     // Identity & PIN handlers
     const aliasTextEl = document.getElementById('wlan-alias-text')!;
-    const aliasEditor = document.getElementById('wlan-alias-editor')!;
+    const aliasEditor = document.getElementById('wlan-alias-editor') as HTMLFormElement;
     const aliasInput = document.getElementById('wlan-alias-input') as HTMLInputElement;
 
     document.getElementById('wlan-edit-alias')!.onclick = () => {
@@ -1162,12 +1271,18 @@ export function renderWlanMode(container: HTMLElement): () => void {
       aliasEditor.hidden = true;
     };
 
-    document.getElementById('wlan-alias-save')!.onclick = commitAlias;
+    aliasEditor.onsubmit = (e) => {
+      e.preventDefault();
+      commitAlias();
+    };
     document.getElementById('wlan-alias-cancel')!.onclick = () => {
       aliasEditor.hidden = true;
     };
     aliasInput.onkeydown = (e) => {
-      if (e.key === 'Enter') commitAlias();
+      if (e.key === 'Enter' && (e.isComposing || e.keyCode === 229)) {
+        e.preventDefault();
+        return;
+      }
       if (e.key === 'Escape') aliasEditor.hidden = true;
     };
 
@@ -1187,8 +1302,116 @@ export function renderWlanMode(container: HTMLElement): () => void {
       pinInput.value = receiverPin;
     };
 
-    document.getElementById('wlan-save-ws')!.onclick = () => {
-      customWsUrl = (document.getElementById('wlan-custom-ws') as HTMLInputElement).value.trim();
+    // Custom WebSocket Form (validate-input-after-interaction + forms)
+    const wsForm = document.getElementById('wlan-ws-form') as HTMLFormElement;
+    const wsInput = document.getElementById('wlan-custom-ws') as HTMLInputElement;
+    const wsErr = document.getElementById('wlan-custom-ws-err') as HTMLElement;
+    const wsResetBtn = document.getElementById('wlan-reset-ws') as HTMLButtonElement;
+    let wsEdited = false;
+    let wsAnnounceTimer: number | null = null;
+
+    const getLiveAnnouncer = (): HTMLElement => {
+      let el = document.getElementById('ts-live-announcer');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'ts-live-announcer';
+        el.setAttribute('aria-live', 'polite');
+        el.className = 'visually-hidden';
+        document.body.append(el);
+      }
+      return el;
+    };
+
+    const clearWsAnnouncement = () => {
+      if (wsAnnounceTimer !== null) {
+        clearTimeout(wsAnnounceTimer);
+        wsAnnounceTimer = null;
+      }
+      const el = document.getElementById('ts-live-announcer');
+      if (el) el.textContent = '';
+    };
+
+    const announceWsError = (reason: string) => {
+      const announcer = getLiveAnnouncer();
+      clearWsAnnouncement();
+      wsAnnounceTimer = window.setTimeout(() => {
+        wsAnnounceTimer = null;
+        if (destroyed || !wsInput.isConnected) return;
+        announcer.textContent = `Server WebSocket: Error: ${reason}`;
+      }, 500);
+    };
+
+    const linkWsError = (shown: boolean) => {
+      const errId = wsInput.dataset.error;
+      if (!errId) return;
+      const ids = (wsInput.getAttribute('aria-describedby') || '')
+        .split(/\s+/)
+        .filter((id) => id && id !== errId);
+      if (shown) ids.push(errId);
+      if (ids.length) wsInput.setAttribute('aria-describedby', ids.join(' '));
+      else wsInput.removeAttribute('aria-describedby');
+    };
+
+    const clearWsFieldError = () => {
+      wsInput.setCustomValidity('');
+      wsInput.classList.remove('user-invalid-fallback');
+      wsInput.setAttribute('aria-invalid', 'false');
+      linkWsError(false);
+      wsErr.hidden = true;
+      wsErr.innerHTML = '';
+      clearWsAnnouncement();
+    };
+
+    const applyWsValidation = (announceOnBlur: boolean): string | null => {
+      const check = validateCustomWsUrl(wsInput.value);
+      if (check.valid) {
+        clearWsFieldError();
+        return check.url;
+      }
+      wsInput.setCustomValidity(check.reason);
+      if (!CSS.supports('selector(:user-invalid)') || !wsInput.matches(':user-invalid')) {
+        wsInput.classList.add('user-invalid-fallback');
+      } else {
+        wsInput.classList.remove('user-invalid-fallback');
+      }
+      wsInput.setAttribute('aria-invalid', 'true');
+      wsErr.innerHTML = `<span role="img" aria-label="Error">❌</span> <span>${escapeHtml(check.reason)}</span>`;
+      wsErr.hidden = false;
+      linkWsError(true);
+      if (announceOnBlur) announceWsError(check.reason);
+      else clearWsAnnouncement();
+      return null;
+    };
+
+    wsInput.addEventListener('input', () => {
+      wsEdited = true;
+      if (wsInput.getAttribute('aria-invalid') === 'true' || wsInput.validity.customError) {
+        clearWsFieldError();
+      }
+    });
+
+    wsInput.addEventListener('blur', () => {
+      if (wsEdited && wsInput.value.trim().length > 0) {
+        applyWsValidation(true);
+      }
+    });
+
+    wsResetBtn.onclick = () => {
+      clearWsAnnouncement();
+      resetCustomWsToDefault();
+    };
+
+    wsForm.onsubmit = (e) => {
+      e.preventDefault();
+      wsEdited = true;
+      const validated = applyWsValidation(false);
+      if (validated === null) {
+        wsInput.focus();
+        return;
+      }
+      clearWsAnnouncement();
+      customWsUrl = validated;
+      recoveredInvalidWsNote = '';
       try {
         if (customWsUrl) localStorage.setItem(CUSTOM_WS_STORAGE_KEY, customWsUrl);
         else localStorage.removeItem(CUSTOM_WS_STORAGE_KEY);
@@ -1213,13 +1436,13 @@ export function renderWlanMode(container: HTMLElement): () => void {
       if (!currentRoomCode) currentRoomCode = generateRoomCode();
       panel.innerHTML = `
         <div class="room-box">
-          <div class="room-join-row">
+          <form id="wlan-room-form" class="room-join-row" novalidate>
             <label for="wlan-room-in" class="visually-hidden">Kode Ruang WLAN</label>
-            <input id="wlan-room-in" type="text" maxlength="16" value="${escapeHtml(currentRoomCode)}" placeholder="Masukkan Kode Ruang..." />
-            <button id="wlan-room-join-btn" type="button" class="btn btn-primary">Gabung</button>
+            <input id="wlan-room-in" name="roomCode" type="text" maxlength="16" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${escapeHtml(currentRoomCode)}" placeholder="Masukkan Kode Ruang..." />
+            <button id="wlan-room-join-btn" type="submit" class="btn btn-primary">Gabung</button>
             <button id="wlan-room-new-btn" type="button" class="btn" title="Buat Kode Baru">Acak</button>
             <button id="wlan-room-scan-btn" type="button" class="btn" title="Scan QR Ruang">📷 Scan</button>
-          </div>
+          </form>
           <div id="wlan-room-err" style="margin-top:8px;"></div>
           <div id="wlan-room-qr-wrap" class="room-qr-share" hidden>
             <canvas id="wlan-room-qr-canvas"></canvas>
@@ -1255,9 +1478,16 @@ export function renderWlanMode(container: HTMLElement): () => void {
         </div>
       `;
 
+      const roomForm = document.getElementById('wlan-room-form') as HTMLFormElement;
       const roomIn = document.getElementById('wlan-room-in') as HTMLInputElement;
       const roomErr = document.getElementById('wlan-room-err')!;
-      document.getElementById('wlan-room-join-btn')!.onclick = () => {
+      roomIn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && (e.isComposing || e.keyCode === 229)) {
+          e.preventDefault();
+        }
+      });
+      roomForm.onsubmit = (e) => {
+        e.preventDefault();
         roomErr.innerHTML = '';
         const code = normalizeRoomCode(roomIn.value);
         if (code.length < 4) {
