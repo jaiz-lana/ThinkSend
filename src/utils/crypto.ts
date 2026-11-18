@@ -427,23 +427,65 @@ export async function encodeCompactPayload(text: string): Promise<string> {
 }
 
 export async function decodeCompactPayload(encoded: string): Promise<string> {
-  const trimmed = encoded.trim();
-  if (trimmed.startsWith('c:')) {
-    if (typeof DecompressionStream === 'undefined') {
-      throw new Error('Browser tidak mendukung DecompressionStream untuk kode ini.');
+  const trimmed = encoded.replace(/\s+/g, '');
+  if (!trimmed) {
+    throw new Error('Kode masih kosong. Tempel atau pindai kode terlebih dahulu.');
+  }
+  try {
+    if (trimmed.startsWith('c:')) {
+      if (typeof DecompressionStream === 'undefined') {
+        throw new Error('Browser ini tidak mendukung DecompressionStream untuk membaca kode.');
+      }
+      const compressed = base64UrlDecode(trimmed.slice(2));
+      const ds = new DecompressionStream('deflate-raw');
+      const readPromise = new Response(ds.readable).arrayBuffer();
+      const writer = ds.writable.getWriter();
+      await writer.write(toArrayBuffer(compressed));
+      await writer.close();
+      const plain = await readPromise;
+      return textDecoder.decode(plain);
     }
-    const compressed = base64UrlDecode(trimmed.slice(2));
-    const ds = new DecompressionStream('deflate-raw');
-    const readPromise = new Response(ds.readable).arrayBuffer();
-    const writer = ds.writable.getWriter();
-    await writer.write(toArrayBuffer(compressed));
-    await writer.close();
-    const plain = await readPromise;
-    return textDecoder.decode(plain);
+    if (trimmed.startsWith('u:')) {
+      return textDecoder.decode(base64UrlDecode(trimmed.slice(2)));
+    }
+    // Kompatibilitas dengan kode Base64 JSON versi lama
+    return textDecoder.decode(base64ToUint8(trimmed));
+  } catch (err) {
+    if (err instanceof Error && err.message.includes('DecompressionStream')) throw err;
+    throw new Error('Format kode tidak valid atau terpotong saat disalin. Pastikan seluruh teks kode tersalin.');
   }
-  if (trimmed.startsWith('u:')) {
-    return textDecoder.decode(base64UrlDecode(trimmed.slice(2)));
+}
+
+export async function parseCompactSdp(
+  encoded: string,
+  expectedType: 'offer' | 'answer'
+): Promise<RTCSessionDescriptionInit> {
+  const rawJson = await decodeCompactPayload(encoded);
+  let desc: unknown;
+  try {
+    desc = JSON.parse(rawJson);
+  } catch {
+    throw new Error('Isi kode bukan data sesi P2P yang valid.');
   }
-  // Kompatibilitas dengan kode Base64 JSON versi lama
-  return textDecoder.decode(base64ToUint8(trimmed));
+  if (!desc || typeof desc !== 'object') {
+    throw new Error('Data kode P2P tidak dikenali.');
+  }
+  const typed = desc as { type?: unknown; sdp?: unknown };
+  if (typeof typed.type !== 'string' || typeof typed.sdp !== 'string' || typed.sdp.length < 10) {
+    throw new Error('Struktur kode P2P tidak lengkap.');
+  }
+  if (typed.type !== expectedType) {
+    if (expectedType === 'answer' && typed.type === 'offer') {
+      throw new Error(
+        'Anda menempel Kode Sesi (Offer), padahal kolom ini khusus untuk Kode Balasan (Answer) dari penerima.'
+      );
+    }
+    if (expectedType === 'offer' && typed.type === 'answer') {
+      throw new Error(
+        'Anda menempel Kode Balasan (Answer), padahal kolom ini khusus untuk Kode Sesi (Offer) dari pengirim.'
+      );
+    }
+    throw new Error(`Jenis kode (${typed.type}) tidak sesuai dengan yang dibutuhkan (${expectedType}).`);
+  }
+  return { type: typed.type, sdp: typed.sdp };
 }

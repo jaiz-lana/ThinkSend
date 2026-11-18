@@ -1,6 +1,8 @@
 import QRCode from 'qrcode';
 import jsQR from 'jsqr';
 import { sha256Hex, formatBytes, uint8ToBase64, base64ToUint8 } from '../utils/crypto';
+import { setupDropZone } from '../utils/copy';
+import { escapeHtml } from '../utils/webrtcTransfer';
 
 const CHUNK_SIZE = 550; // Optimal balance between QR density & fast camera decode
 const FPS = 12;
@@ -10,8 +12,18 @@ export function renderQrMode(container: HTMLElement): () => void {
   let streamTimer: number | null = null;
   let videoStream: MediaStream | null = null;
   let scanRaf: number | null = null;
+  let runGen = 0;
+  let cleanupDrop: (() => void) | null = null;
+  const createdUrls: string[] = [];
 
-  function stopAll() {
+  function revokeUrls() {
+    while (createdUrls.length > 0) {
+      const u = createdUrls.pop();
+      if (u) URL.revokeObjectURL(u);
+    }
+  }
+
+  function stopMediaOnly() {
     if (streamTimer !== null) {
       clearInterval(streamTimer);
       streamTimer = null;
@@ -24,6 +36,18 @@ export function renderQrMode(container: HTMLElement): () => void {
       videoStream.getTracks().forEach((t) => t.stop());
       videoStream = null;
     }
+  }
+
+  function stopAll() {
+    runGen++;
+    cleanupDrop?.();
+    cleanupDrop = null;
+    stopMediaOnly();
+  }
+
+  function destroyAll() {
+    stopAll();
+    revokeUrls();
   }
 
   function render() {
@@ -41,16 +65,17 @@ export function renderQrMode(container: HTMLElement): () => void {
           </span>
           Transfer QR Optik (100% Offline)
         </h2>
-        <p class="desc">Kirim file melalui cahaya layar ke kamera tanpa Wi-Fi, Bluetooth, atau kuota internet.</p>
-        <div class="role-switch">
-          <button id="qr-role-send" class="btn ${role === 'send' ? 'btn-primary' : ''}">
+        <p class="desc">Kirim file lewat layar ke kamera tanpa Wi-Fi, Bluetooth, atau internet sama sekali.</p>
+
+        <div class="role-switch" role="tablist" aria-label="Peran QR Optik">
+          <button id="qr-role-send" type="button" role="tab" aria-selected="${role === 'send'}" class="btn ${role === 'send' ? 'btn-primary' : ''}">
             <svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M22 2 11 13" />
               <path d="M22 2 15 22 11 13 2 9 22 2z" />
             </svg>
             Kirim File
           </button>
-          <button id="qr-role-recv" class="btn ${role === 'receive' ? 'btn-primary' : ''}">
+          <button id="qr-role-recv" type="button" role="tab" aria-selected="${role === 'receive'}" class="btn ${role === 'receive' ? 'btn-primary' : ''}">
             <svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
@@ -59,15 +84,25 @@ export function renderQrMode(container: HTMLElement): () => void {
             Terima File
           </button>
         </div>
+
         <div id="qr-body"></div>
+
+        <details class="advanced-box">
+          <summary>Tips Agar Pemindaian QR Cepat &amp; Lancar</summary>
+          <p>
+            Cocok untuk teks, dokumen kecil, kunci, atau foto ringan (&lt; 2 MB). Naikkan kecerahan layar pengirim, hindari pantulan lampu langsung, dan sejajarkan bingkai biru hingga kamera mengunci semua blok serta memverifikasi SHA-256. Untuk file besar di area tanpa internet, gunakan menu <strong>WLAN &rarr; Tanpa Internet</strong>.
+          </p>
+        </details>
       </div>
     `;
 
     document.getElementById('qr-role-send')!.onclick = () => {
+      if (role === 'send') return;
       role = 'send';
       render();
     };
     document.getElementById('qr-role-recv')!.onclick = () => {
+      if (role === 'receive') return;
       role = 'receive';
       render();
     };
@@ -82,7 +117,7 @@ export function renderQrMode(container: HTMLElement): () => void {
 
   function renderSender(body: HTMLElement) {
     body.innerHTML = `
-      <label class="file-drop">
+      <label class="file-drop" id="qr-dropzone">
         <input type="file" id="qr-file-input" />
         <span class="file-drop-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -91,139 +126,218 @@ export function renderQrMode(container: HTMLElement): () => void {
             <line x1="12" y1="3" x2="12" y2="15" />
           </svg>
         </span>
-        <strong style="font-size:0.95rem;">Pilih File untuk Dikirim</strong>
-        <span style="font-size:0.78rem;color:var(--muted);margin-top:2px;">Disarankan &lt; 2 MB untuk transfer QR tercepat</span>
+        <strong style="font-size:0.95rem;">Pilih atau Seret File ke Sini</strong>
+        <span style="font-size:0.78rem;color:var(--muted);margin-top:2px;">Disarankan &lt; 2 MB agar selesai dalam beberapa detik</span>
       </label>
       <div id="qr-send-status"></div>
     `;
 
+    const dropzone = document.getElementById('qr-dropzone') as HTMLLabelElement;
     const input = document.getElementById('qr-file-input') as HTMLInputElement;
     const status = document.getElementById('qr-send-status')!;
 
-    input.onchange = async () => {
-      const file = input.files?.[0];
-      if (!file) return;
+    const startSendingFile = async (file: File) => {
+      stopMediaOnly();
+      const myGen = ++runGen;
 
-      status.innerHTML = `<div class="alert alert-info">Menyiapkan blok data &amp; hash SHA-256...</div>`;
+      const sizeWarn =
+        file.size > 3 * 1024 * 1024
+          ? `<div class="alert alert-warning"><span aria-hidden="true">⚠️</span><div>File berukuran <strong>${escapeHtml(formatBytes(file.size))}</strong> (~${Math.ceil((file.size / CHUNK_SIZE) / FPS)} dtk/putaran). Jika terlalu lama lewat kamera, pertimbangkan memakai tab <strong>WLAN</strong>.</div></div>`
+          : '';
+
+      status.innerHTML = `${sizeWarn}<div class="alert alert-info">Menyiapkan blok QR &amp; sidik jari SHA-256...</div>`;
       const buffer = await file.arrayBuffer();
+      if (myGen !== runGen) return;
+
       const hash = await sha256Hex(buffer);
+      if (myGen !== runGen) return;
+
       const bytes = new Uint8Array(buffer);
       const totalChunks = Math.max(1, Math.ceil(bytes.length / CHUNK_SIZE));
+      const streamId = hash.slice(0, 6);
 
       const chunks: string[] = [];
       for (let i = 0; i < totalChunks; i++) {
         const slice = bytes.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
         chunks.push(`TS1|D|${i}|${uint8ToBase64(slice)}`);
       }
-      const metaPayload = `TS1|M|${encodeURIComponent(file.name)}|${file.size}|${totalChunks}|${hash}`;
+      const metaPayload = `TS1|M|${encodeURIComponent(file.name)}|${file.size}|${totalChunks}|${hash}|${streamId}`;
+
+      dropzone.hidden = true;
 
       status.innerHTML = `
-        <div class="alert alert-warning">
-          <span>⚠️</span>
-          <div><strong>Hadapkan Perangkat A &amp; B!</strong><br/>Arahkan kamera penerima ke layar ini. Terus hadapkan kedua perangkat satu sama lain hingga transfer selesai.</div>
+        ${sizeWarn}
+        <div class="alert alert-info">
+          <span aria-hidden="true">📱</span>
+          <div><strong>Hadapkan Kamera Penerima ke QR Ini:</strong> Siaran berputar otomatis sampai semua blok diterima.</div>
         </div>
         <div class="qr-stage">
           <canvas id="qr-canvas"></canvas>
         </div>
         <div class="stats-row">
-          <span id="qr-frame-info">File: ${file.name} (${formatBytes(file.size)})</span>
-          <span id="qr-block-info">${totalChunks} blok</span>
+          <span id="qr-frame-info" class="truncate-line"><span>Menyiapkan...</span></span>
+          <span id="qr-block-info">${totalChunks} blok (${escapeHtml(formatBytes(file.size))})</span>
         </div>
-        <div style="margin-top:12px;display:flex;gap:8px;">
-          <button id="qr-stop-btn" class="btn btn-danger" style="width:100%;">Hentikan Transfer</button>
+        <div class="action-row" style="margin-top:12px;">
+          <button id="qr-change-file" type="button" class="btn">Pilih File Lain</button>
+          <button id="qr-stop-btn" type="button" class="btn btn-danger">Hentikan</button>
         </div>
       `;
 
       const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
       const frameInfo = document.getElementById('qr-frame-info')!;
+      document.getElementById('qr-change-file')!.onclick = () => {
+        stopMediaOnly();
+        status.innerHTML = '';
+        dropzone.hidden = false;
+        input.value = '';
+        input.click();
+      };
       document.getElementById('qr-stop-btn')!.onclick = () => render();
 
-      // Interleave metadata every 8 frames so receiver can auto-start anytime
+      // Interleave metadata setiap beberapa frame agar penerima bisa bergabung kapan saja
       let tick = 0;
       const drawNext = () => {
+        if (myGen !== runGen) return;
         const isMeta = tick % 9 === 0;
         const idx = Math.floor((tick - Math.floor(tick / 9)) % totalChunks);
         const payload = isMeta ? metaPayload : chunks[idx];
 
-        QRCode.toCanvas(canvas, payload, {
+        void QRCode.toCanvas(canvas, payload, {
           width: 300,
           margin: 1,
           errorCorrectionLevel: 'L',
         });
 
         frameInfo.textContent = isMeta
-          ? `Kalibrasi / Metadata (${file.name})`
-          : `Mengirim blok ${idx + 1} / ${totalChunks}`;
+          ? `Metadata (${file.name})`
+          : `Blok ${idx + 1} / ${totalChunks}`;
         tick++;
       };
 
       drawNext();
       streamTimer = window.setInterval(drawNext, 1000 / FPS);
     };
+
+    input.onchange = () => {
+      const file = input.files?.[0];
+      input.value = '';
+      if (file) void startSendingFile(file);
+    };
+
+    cleanupDrop = setupDropZone(dropzone, (files) => {
+      if (files[0]) void startSendingFile(files[0]);
+    });
   }
 
   function renderReceiver(body: HTMLElement) {
     body.innerHTML = `
-      <div class="alert alert-warning">
-        <span>⚠️</span>
-        <div><strong>Panduan Alignment:</strong> Hadapkan kamera ke layar pengirim. Jika sudah sejajar, transfer akan <strong>otomatis dimulai</strong>. Terus hadapkan kedua perangkat hingga selesai.</div>
+      <div class="alert alert-info">
+        <span aria-hidden="true">📷</span>
+        <div>Arahkan kamera ke layar pengirim. Transfer akan <strong>berjalan otomatis</strong> begitu QR terbaca.</div>
       </div>
-      <div class="camera-box">
+      <div id="qr-camera-wrap" class="camera-box" hidden>
         <video id="qr-video" playsinline muted></video>
         <div class="camera-guide"></div>
       </div>
-      <button id="qr-start-cam" class="btn btn-primary" style="width:100%;margin-bottom:12px;">📷 Aktifkan Kamera &amp; Mulai</button>
+      <button id="qr-start-cam" type="button" class="btn btn-primary" style="width:100%;margin-bottom:12px;">
+        📷 Aktifkan Kamera &amp; Pindai
+      </button>
       <div id="qr-recv-status"></div>
     `;
 
+    const camWrap = document.getElementById('qr-camera-wrap')!;
     const startBtn = document.getElementById('qr-start-cam') as HTMLButtonElement;
     const video = document.getElementById('qr-video') as HTMLVideoElement;
     const status = document.getElementById('qr-recv-status')!;
 
     startBtn.onclick = async () => {
+      const myGen = ++runGen;
+      startBtn.disabled = true;
+      startBtn.textContent = 'Menyalakan kamera...';
+      status.innerHTML = '';
+
       try {
-        videoStream = await navigator.mediaDevices.getUserMedia({
+        if (!navigator.mediaDevices?.getUserMedia) {
+          throw new Error('Browser tidak mendukung akses kamera atau halaman belum memakai HTTPS.');
+        }
+        const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
         });
-        video.srcObject = videoStream;
+        if (myGen !== runGen) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        videoStream = stream;
+        video.srcObject = stream;
+        camWrap.hidden = false;
         await video.play();
-        startBtn.style.display = 'none';
-        startScanning(video, status);
+        if (myGen !== runGen) {
+          stopMediaOnly();
+          return;
+        }
+
+        startBtn.hidden = true;
+        startScanning(video, camWrap, startBtn, status, myGen);
       } catch (err) {
-        status.innerHTML = `<div class="alert alert-warning">Gagal mengakses kamera: ${(err as Error).message}</div>`;
+        if (myGen !== runGen) return;
+        camWrap.hidden = true;
+        startBtn.disabled = false;
+        startBtn.textContent = '📷 Coba Nyalakan Kamera Lagi';
+        status.innerHTML = `<div class="alert alert-warning"><span aria-hidden="true">⚠️</span><div>Gagal mengakses kamera: ${escapeHtml((err as Error).message)}</div></div>`;
       }
     };
   }
 
-  async function startScanning(video: HTMLVideoElement, status: HTMLElement) {
+  function startScanning(
+    video: HTMLVideoElement,
+    camWrap: HTMLElement,
+    startBtn: HTMLButtonElement,
+    status: HTMLElement,
+    myGen: number
+  ) {
     const offscreen = document.createElement('canvas');
     const ctx = offscreen.getContext('2d', { willReadFrequently: true })!;
 
     let meta: { name: string; size: number; total: number; hash: string } | null = null;
     const received = new Map<number, Uint8Array>();
     let startTime = 0;
+    let completed = false;
 
-    // Prefer native BarcodeDetector if available for maximum speed
     const hasNative = 'BarcodeDetector' in window;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const detector = hasNative ? new (window as any).BarcodeDetector({ formats: ['qr_code'] }) : null;
 
     const updateUI = () => {
+      if (myGen !== runGen || completed) return;
       if (!meta) {
-        status.innerHTML = `<div class="alert alert-info">Mencari sinyal QR pengirim... Pastikan kedua perangkat saling berhadapan.</div>`;
+        status.innerHTML = `
+          <div class="transfer-progress-card">
+            <div class="transfer-meta-row">
+              <strong>Mencari sinyal QR pengirim...</strong>
+              <span>Menunggu</span>
+            </div>
+            <progress class="ts-progress" aria-label="Mencari sinyal QR"></progress>
+          </div>
+        `;
         return;
       }
-      const pct = Math.round((received.size / meta.total) * 100);
+      const pct = Math.min(100, Math.round((received.size / meta.total) * 100));
       const elapsed = Math.max(0.1, (Date.now() - startTime) / 1000);
       const bytesGot = received.size * CHUNK_SIZE;
       const speed = (bytesGot / 1024 / elapsed).toFixed(1);
 
       status.innerHTML = `
-        <div class="alert alert-info">Menerima: <strong>${meta.name}</strong> (${formatBytes(meta.size)})</div>
-        <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
-        <div class="stats-row">
-          <span>${pct}% (${received.size}/${meta.total} blok)</span>
-          <span>${speed} KB/s</span>
+        <div class="transfer-progress-card">
+          <div class="transfer-meta-row">
+            <strong>Menerima: ${escapeHtml(meta.name)} (${escapeHtml(formatBytes(meta.size))})</strong>
+            <span>${pct}%</span>
+          </div>
+          <progress class="ts-progress" value="${pct}" max="100" aria-label="Progres transfer QR"></progress>
+          <div class="stats-row">
+            <span>${received.size} / ${meta.total} blok</span>
+            <span>${speed} KB/dtk</span>
+          </div>
         </div>
       `;
     };
@@ -231,53 +345,103 @@ export function renderQrMode(container: HTMLElement): () => void {
     updateUI();
 
     const handlePayload = async (raw: string) => {
-      if (!raw.startsWith('TS1|')) return;
+      if (myGen !== runGen || completed || !raw.startsWith('TS1|')) return;
       const parts = raw.split('|');
 
-      if (parts[1] === 'M' && !meta) {
-        meta = {
-          name: decodeURIComponent(parts[2]),
-          size: Number(parts[3]),
-          total: Number(parts[4]),
-          hash: parts[5],
-        };
-        startTime = Date.now();
-        updateUI();
-      } else if (parts[1] === 'D' && meta) {
+      if (parts[1] === 'M' && parts.length >= 6) {
+        let decodedName = 'file';
+        try {
+          decodedName = decodeURIComponent(parts[2] || 'file');
+        } catch {
+          decodedName = parts[2] || 'file';
+        }
+        const size = Number(parts[3]);
+        const total = Number(parts[4]);
+        const hash = parts[5] || '';
+        if (!Number.isFinite(size) || size < 0 || !Number.isFinite(total) || total <= 0 || !hash) {
+          return;
+        }
+        if (!meta || meta.hash !== hash) {
+          meta = { name: decodedName, size, total, hash };
+          received.clear();
+          startTime = Date.now();
+          updateUI();
+        }
+      } else if (parts[1] === 'D' && meta && parts.length >= 4) {
         const idx = Number(parts[2]);
+        if (!Number.isInteger(idx) || idx < 0 || idx >= meta.total) return;
+
         if (!received.has(idx)) {
-          received.set(idx, base64ToUint8(parts[3]));
+          let bytes: Uint8Array;
+          try {
+            bytes = base64ToUint8(parts[3]);
+          } catch {
+            return;
+          }
+          received.set(idx, bytes);
           updateUI();
 
           if (received.size === meta.total) {
-            stopAll();
-            const full = new Uint8Array(meta.size);
-            let offset = 0;
+            completed = true;
+            stopMediaOnly();
+            camWrap.hidden = true;
+
+            let totalBytes = 0;
+            const orderedChunks: Uint8Array[] = [];
             for (let i = 0; i < meta.total; i++) {
-              const chunk = received.get(i)!;
-              full.set(chunk, offset);
-              offset += chunk.length;
+              const c = received.get(i) ?? new Uint8Array(0);
+              orderedChunks.push(c);
+              totalBytes += c.byteLength;
             }
+            const full = new Uint8Array(totalBytes);
+            let offset = 0;
+            for (const c of orderedChunks) {
+              full.set(c, offset);
+              offset += c.byteLength;
+            }
+
             const actualHash = await sha256Hex(full.buffer);
+            if (myGen !== runGen) return;
+
             const verified = actualHash === meta.hash;
             const blob = new Blob([full]);
             const url = URL.createObjectURL(blob);
+            createdUrls.push(url);
 
             status.innerHTML = `
-              <div class="alert ${verified ? 'alert-success' : 'alert-warning'}">
-                ${verified ? '✅ Transfer Selesai &amp; SHA-256 Terverifikasi!' : '⚠️ Transfer selesai, namun hash tidak cocok.'}
+              <div class="alert ${verified ? 'alert-success' : 'alert-warning'}" role="status">
+                <span aria-hidden="true">${verified ? '✅' : '⚠️'}</span>
+                <div>${verified ? 'Transfer selesai &amp; keutuhan file SHA-256 cocok 100%!' : 'Transfer selesai, namun hash SHA-256 tidak cocok.'}</div>
               </div>
-              <a href="${url}" download="${meta.name}" class="btn btn-success" style="width:100%;text-decoration:none;">
-                💾 Simpan ${meta.name} (${formatBytes(meta.size)})
-              </a>
+              <div class="received-file-item">
+                <div class="received-file-meta">
+                  <strong>${escapeHtml(meta.name)}</strong>
+                  <span>${escapeHtml(formatBytes(full.byteLength))} • ${verified ? 'SHA-256 Terverifikasi' : 'Hash Tidak Cocok'}</span>
+                </div>
+                <a href="${url}" download="${escapeHtml(meta.name)}" class="btn btn-success" style="text-decoration:none;">
+                  💾 Simpan File
+                </a>
+              </div>
+              <button id="qr-recv-again" type="button" class="btn" style="width:100%;margin-top:10px;">
+                📷 Pindai File Berikutnya
+              </button>
             `;
+
+            document.getElementById('qr-recv-again')!.onclick = () => {
+              startBtn.hidden = false;
+              startBtn.disabled = false;
+              startBtn.textContent = '📷 Aktifkan Kamera & Pindai';
+              status.innerHTML = '';
+              startBtn.click();
+            };
           }
         }
       }
     };
 
     const loop = async () => {
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      if (myGen !== runGen || completed) return;
+      if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
         offscreen.width = video.videoWidth;
         offscreen.height = video.videoHeight;
         ctx.drawImage(video, 0, 0, offscreen.width, offscreen.height);
@@ -289,7 +453,7 @@ export function renderQrMode(container: HTMLElement): () => void {
               await handlePayload(c.rawValue);
             }
           } catch {
-            // ignore frame error
+            // Abaikan error frame
           }
         } else {
           const img = ctx.getImageData(0, 0, offscreen.width, offscreen.height);
@@ -299,12 +463,14 @@ export function renderQrMode(container: HTMLElement): () => void {
           }
         }
       }
-      scanRaf = requestAnimationFrame(loop);
+      if (myGen === runGen && !completed) {
+        scanRaf = requestAnimationFrame(() => void loop());
+      }
     };
 
-    scanRaf = requestAnimationFrame(loop);
+    scanRaf = requestAnimationFrame(() => void loop());
   }
 
   render();
-  return stopAll;
+  return destroyAll;
 }

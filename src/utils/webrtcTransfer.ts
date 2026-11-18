@@ -251,15 +251,19 @@ export class E2eeDataSession {
   private async waitBufferedLow(): Promise<void> {
     if (this.dc.bufferedAmount <= MAX_BUFFERED_AMOUNT) return;
     await new Promise<void>((resolve, reject) => {
+      let pollId: number | null = null;
       const onLow = () => {
-        cleanup();
-        resolve();
+        if (this.dc.bufferedAmount <= MAX_BUFFERED_AMOUNT) {
+          cleanup();
+          resolve();
+        }
       };
       const onClose = () => {
         cleanup();
         reject(new Error('Koneksi terputus saat mengirim data.'));
       };
       const cleanup = () => {
+        if (pollId !== null) clearInterval(pollId);
         this.dc.removeEventListener('bufferedamountlow', onLow);
         this.dc.removeEventListener('close', onClose);
         this.dc.removeEventListener('error', onClose);
@@ -267,6 +271,14 @@ export class E2eeDataSession {
       this.dc.addEventListener('bufferedamountlow', onLow);
       this.dc.addEventListener('close', onClose);
       this.dc.addEventListener('error', onClose);
+      pollId = window.setInterval(() => {
+        if (this.closed || this.dc.readyState === 'closed' || this.dc.readyState === 'closing') {
+          onClose();
+        } else if (this.dc.bufferedAmount <= MAX_BUFFERED_AMOUNT) {
+          cleanup();
+          resolve();
+        }
+      }, 120);
     });
   }
 
@@ -275,6 +287,7 @@ export class E2eeDataSession {
     onChannelOpen?: () => void;
     onRequestRemotePin?: (sasCode: string, attempt: number, remaining: number) => Promise<string | null>;
   }): Promise<{ sasCode: string }> {
+    if (this.closed) throw new Error('Sesi sudah ditutup.');
     await this.waitOpen();
     opts.onChannelOpen?.();
 
@@ -516,6 +529,7 @@ export class E2eeDataSession {
     onProgress: (info: TransferProgressInfo) => void;
     onFileComplete: (result: ReceivedFileResult) => void;
     onError: (err: Error) => void;
+    onRemoteClose?: () => void;
   }): Promise<void> {
     let currentMeta: Extract<EncryptedControlMsg, { t: 'file_start' }> | null = null;
     let chunks: ArrayBuffer[] = [];
@@ -607,6 +621,10 @@ export class E2eeDataSession {
       }
     } catch (err) {
       if (!this.closed) {
+        if (currentMeta === null && (this.dc.readyState === 'closed' || this.dc.readyState === 'closing')) {
+          callbacks.onRemoteClose?.();
+          return;
+        }
         callbacks.onError(err instanceof Error ? err : new Error('Gagal menerima data terenkripsi.'));
       }
     }

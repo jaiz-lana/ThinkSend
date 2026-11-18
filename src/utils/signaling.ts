@@ -242,10 +242,38 @@ function topicToEphemeralKind(topic: string): number {
   return ((h >>> 0) % 9000) + 20500;
 }
 
+const DEVICE_UID_KEY = 'thinksend_device_uid';
+const SESSION_FALLBACK_UID = randomId(10);
+const RETIRED_SELF_IDS = new Set<string>();
+
+export function getOrCreateDeviceUid(): string {
+  try {
+    const saved = localStorage.getItem(DEVICE_UID_KEY);
+    if (saved && saved.trim().length >= 6) return saved.trim();
+  } catch {
+    // Abaikan jika storage dibatasi
+  }
+  const fresh = randomId(10);
+  try {
+    localStorage.setItem(DEVICE_UID_KEY, fresh);
+  } catch {
+    try {
+      const sess = sessionStorage.getItem(DEVICE_UID_KEY);
+      if (sess) return sess;
+      sessionStorage.setItem(DEVICE_UID_KEY, SESSION_FALLBACK_UID);
+    } catch {
+      // Abaikan
+    }
+    return SESSION_FALLBACK_UID;
+  }
+  return fresh;
+}
+
 type OuterEnvelope =
   | {
       kind: 'presence';
       id: string;
+      deviceUid?: string;
       alias: string;
       device: string;
       pubJwk: JsonWebKey;
@@ -256,6 +284,7 @@ type OuterEnvelope =
   | {
       kind: 'direct';
       from: string;
+      fromDeviceUid?: string;
       to: string;
       fromPubJwk: JsonWebKey;
       enc: string;
@@ -264,6 +293,7 @@ type OuterEnvelope =
 
 export class ThinkSendSignalingRoom {
   readonly selfId: string;
+  readonly selfDeviceUid: string;
   private alias: string;
   private readonly device: string;
   private requirePin: boolean;
@@ -280,6 +310,7 @@ export class ThinkSendSignalingRoom {
   private sockets = new Map<string, WebSocket>();
   private customWs: WebSocket | null = null;
   private closed = false;
+  private closing = false;
   private subId = `ts-${randomId(6)}`;
   private seenIds = new Set<string>();
   private peers = new Map<string, SignalingPeer>();
@@ -288,10 +319,12 @@ export class ThinkSendSignalingRoom {
   private heartbeatTimer: number | null = null;
   private pruneTimer: number | null = null;
   private reconnectTimers = new Map<string, number>();
+  private onPageHideBound: () => void;
 
   private onPeersUpdate: (peers: SignalingPeer[]) => void;
   private onDirectSignal: (peer: SignalingPeer, signal: DirectSignalPayload) => void;
   private onStatus: (status: RelayStatus) => void;
+  private onPeerBye?: (peerId: string) => void;
 
   constructor(opts: {
     alias: string;
@@ -301,8 +334,16 @@ export class ThinkSendSignalingRoom {
     onPeersUpdate: (peers: SignalingPeer[]) => void;
     onDirectSignal: (peer: SignalingPeer, signal: DirectSignalPayload) => void;
     onStatus: (status: RelayStatus) => void;
+    onPeerBye?: (peerId: string) => void;
   }) {
     this.selfId = randomId(9);
+    this.selfDeviceUid = getOrCreateDeviceUid();
+    RETIRED_SELF_IDS.add(this.selfId);
+    if (RETIRED_SELF_IDS.size > 64) {
+      const oldest = RETIRED_SELF_IDS.values().next().value;
+      if (oldest && oldest !== this.selfId) RETIRED_SELF_IDS.delete(oldest);
+    }
+
     this.alias = opts.alias;
     this.device = detectDeviceLabel();
     this.requirePin = opts.requirePin;
@@ -311,6 +352,11 @@ export class ThinkSendSignalingRoom {
     this.onPeersUpdate = opts.onPeersUpdate;
     this.onDirectSignal = opts.onDirectSignal;
     this.onStatus = opts.onStatus;
+    this.onPeerBye = opts.onPeerBye;
+
+    this.onPageHideBound = () => {
+      void this.broadcastPresence(true);
+    };
   }
 
   async start(): Promise<void> {
@@ -320,7 +366,9 @@ export class ThinkSendSignalingRoom {
     this.topicHash = (await sha256TextHex(`thinksend-topic-v1:${this.roomSecret}`)).slice(0, 32);
     this.nostrKind = topicToEphemeralKind(this.topicHash);
 
-    if (this.closed) return;
+    if (this.closed || this.closing) return;
+
+    window.addEventListener('pagehide', this.onPageHideBound);
 
     if (this.customWsUrl) {
       this.connectCustomWs(this.customWsUrl);
@@ -333,14 +381,15 @@ export class ThinkSendSignalingRoom {
 
     this.heartbeatTimer = window.setInterval(() => {
       void this.broadcastPresence(false);
-    }, 12_000);
+    }, 10_000);
 
     this.pruneTimer = window.setInterval(() => {
       const now = Date.now();
       let changed = false;
       for (const [id, peer] of this.peers) {
-        if (now - peer.lastSeen > 35_000) {
+        if (now - peer.lastSeen > 30_000) {
           this.peers.delete(id);
+          this.onPeerBye?.(id);
           changed = true;
         }
       }
@@ -359,7 +408,7 @@ export class ThinkSendSignalingRoom {
   }
 
   async sendDirect(targetPeer: SignalingPeer, signal: DirectSignalPayload): Promise<void> {
-    if (this.closed || !this.ecdhPair || !this.selfPubJwk) return;
+    if (this.closed || this.closing || !this.ecdhPair || !this.selfPubJwk) return;
     const pairKey = await this.getPairKey(targetPeer.id, targetPeer.pubJwk);
     const aad = textEncoder.encode(`${this.topicHash}:${this.selfId}:${targetPeer.id}`);
     const sealedDirect = await sealAesGcm(
@@ -371,6 +420,7 @@ export class ThinkSendSignalingRoom {
     await this.publishEnvelope({
       kind: 'direct',
       from: this.selfId,
+      fromDeviceUid: this.selfDeviceUid,
       to: targetPeer.id,
       fromPubJwk: this.selfPubJwk,
       enc: base64UrlEncode(sealedDirect),
@@ -379,12 +429,24 @@ export class ThinkSendSignalingRoom {
   }
 
   async close(): Promise<void> {
-    if (this.closed) return;
+    if (this.closed || this.closing) return;
+    this.closing = true;
+    window.removeEventListener('pagehide', this.onPageHideBound);
+
+    const hasOpenSocket =
+      (this.customWs && this.customWs.readyState === WebSocket.OPEN) ||
+      Array.from(this.sockets.values()).some((ws) => ws.readyState === WebSocket.OPEN);
+
     try {
       await this.broadcastPresence(true);
+      if (hasOpenSocket) {
+        // Beri waktu singkat agar frame bye benar-benar terkirim sebelum socket ditutup
+        await new Promise((r) => setTimeout(r, 85));
+      }
     } catch {
       // Abaikan saat tutup
     }
+
     this.closed = true;
     if (this.heartbeatTimer !== null) clearInterval(this.heartbeatTimer);
     if (this.pruneTimer !== null) clearInterval(this.pruneTimer);
@@ -412,6 +474,7 @@ export class ThinkSendSignalingRoom {
   }
 
   private emitStatus(lastError?: string): void {
+    if (this.closed || this.closing) return;
     if (this.customWsUrl) {
       this.onStatus({
         connectedRelays: this.customWs?.readyState === WebSocket.OPEN ? 1 : 0,
@@ -434,6 +497,7 @@ export class ThinkSendSignalingRoom {
   }
 
   private emitPeers(): void {
+    if (this.closed || this.closing) return;
     const list = Array.from(this.peers.values()).sort((a, b) => a.alias.localeCompare(b.alias));
     this.onPeersUpdate(list);
   }
@@ -458,9 +522,11 @@ export class ThinkSendSignalingRoom {
 
   private async broadcastPresence(bye: boolean): Promise<void> {
     if (this.closed || !this.selfPubJwk) return;
+    if (this.closing && !bye) return;
     await this.publishEnvelope({
       kind: 'presence',
       id: this.selfId,
+      deviceUid: this.selfDeviceUid,
       alias: this.alias,
       device: this.device,
       pubJwk: this.selfPubJwk,
@@ -517,8 +583,14 @@ export class ThinkSendSignalingRoom {
     }
   }
 
+  private isOwnIdentity(id?: string, deviceUid?: string): boolean {
+    if (id && (id === this.selfId || RETIRED_SELF_IDS.has(id))) return true;
+    if (deviceUid && deviceUid === this.selfDeviceUid) return true;
+    return false;
+  }
+
   private async handleEncryptedPayload(msgId: string, content: string): Promise<void> {
-    if (this.closed || !this.roomKey) return;
+    if (this.closed || this.closing || !this.roomKey) return;
     if (this.seenIds.has(msgId)) return;
     this.seenIds.add(msgId);
     if (this.seenIds.size > 1000) {
@@ -535,22 +607,37 @@ export class ThinkSendSignalingRoom {
       return;
     }
 
-    // Abaikan pesan kedaluwarsa > 45 detik
-    if (Math.abs(Date.now() - envelope.ts) > 45_000) return;
+    if (!envelope || typeof envelope !== 'object' || typeof envelope.ts !== 'number') return;
+
+    // Abaikan pesan kedaluwarsa > 40 detik
+    if (Math.abs(Date.now() - envelope.ts) > 40_000) return;
 
     if (envelope.kind === 'presence') {
-      if (envelope.id === this.selfId) return;
-      if (envelope.bye) {
+      if (
+        typeof envelope.id !== 'string' ||
+        typeof envelope.alias !== 'string' ||
+        !envelope.pubJwk ||
+        typeof envelope.pubJwk !== 'object'
+      ) {
+        return;
+      }
+      if (this.isOwnIdentity(envelope.id, envelope.deviceUid)) {
         if (this.peers.delete(envelope.id)) this.emitPeers();
+        return;
+      }
+      if (envelope.bye) {
+        const deleted = this.peers.delete(envelope.id);
+        this.onPeerBye?.(envelope.id);
+        if (deleted) this.emitPeers();
         return;
       }
       const isNew = !this.peers.has(envelope.id);
       this.peers.set(envelope.id, {
         id: envelope.id,
-        alias: envelope.alias,
-        device: envelope.device,
+        alias: envelope.alias.trim().slice(0, 32) || 'Perangkat Terdekat',
+        device: (typeof envelope.device === 'string' ? envelope.device : 'Browser').slice(0, 24),
         pubJwk: envelope.pubJwk,
-        requirePin: envelope.requirePin,
+        requirePin: Boolean(envelope.requirePin),
         lastSeen: Date.now(),
       });
       this.emitPeers();
@@ -562,6 +649,7 @@ export class ThinkSendSignalingRoom {
     }
 
     if (envelope.kind === 'direct' && envelope.to === this.selfId) {
+      if (this.isOwnIdentity(envelope.from, envelope.fromDeviceUid)) return;
       try {
         const senderPeer = this.peers.get(envelope.from);
         const senderPubJwk = senderPeer?.pubJwk ?? envelope.fromPubJwk;
@@ -585,17 +673,17 @@ export class ThinkSendSignalingRoom {
   }
 
   private connectNostrRelay(url: string, slotIdx: number): void {
-    if (this.closed) return;
+    if (this.closed || this.closing) return;
     try {
       const ws = new WebSocket(url);
       this.sockets.set(url, ws);
 
       ws.onopen = () => {
-        if (this.closed) {
+        if (this.closed || this.closing) {
           ws.close();
           return;
         }
-        const since = Math.floor(Date.now() / 1000) - 25;
+        const since = Math.floor(Date.now() / 1000) - 18;
         ws.send(
           JSON.stringify([
             'REQ',
@@ -625,7 +713,7 @@ export class ThinkSendSignalingRoom {
       const scheduleReconnect = () => {
         this.sockets.delete(url);
         this.emitStatus();
-        if (this.closed) return;
+        if (this.closed || this.closing) return;
         const nextUrl =
           DEFAULT_NOSTR_RELAYS[(slotIdx + Math.floor(Math.random() * 2) + 1) % DEFAULT_NOSTR_RELAYS.length];
         const targetUrl = this.sockets.has(nextUrl) ? url : nextUrl;
@@ -646,7 +734,7 @@ export class ThinkSendSignalingRoom {
   }
 
   private connectCustomWs(url: string): void {
-    if (this.closed) return;
+    if (this.closed || this.closing) return;
     try {
       const ws = new WebSocket(url);
       this.customWs = ws;
@@ -671,7 +759,7 @@ export class ThinkSendSignalingRoom {
       };
       ws.onclose = () => {
         this.emitStatus();
-        if (this.closed) return;
+        if (this.closed || this.closing) return;
         const tid = window.setTimeout(() => this.connectCustomWs(url), 4000);
         this.reconnectTimers.set('custom', tid);
       };
