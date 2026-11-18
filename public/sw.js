@@ -1,5 +1,5 @@
-const CACHE_NAME = 'thinksend-v7';
-const CORE_ASSETS = ['./', './index.html', './manifest.json', './icon.svg'];
+const CACHE_NAME = 'thinksend-v8';
+const CORE_ASSETS = ['./', './index.html', './404.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -40,10 +40,12 @@ self.addEventListener('fetch', (event) => {
     event.request.mode === 'navigate' ||
     url.pathname.endsWith('/') ||
     url.pathname.endsWith('/index.html') ||
+    url.pathname.endsWith('/404.html') ||
     url.pathname.endsWith('/manifest.json') ||
     url.pathname.endsWith('/icon.svg');
 
   if (isHtmlOrCore) {
+    const basePath = new URL('./', self.location.href).pathname;
     event.respondWith(
       fetch(event.request)
         .then((response) => {
@@ -54,12 +56,16 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() =>
-          caches
-            .match(event.request)
-            .then(
-              (cached) =>
-                cached || (event.request.mode === 'navigate' ? caches.match('./index.html') : undefined)
-            )
+          caches.match(event.request).then((cached) => {
+            if (cached) return cached;
+            if (event.request.mode !== 'navigate') return undefined;
+            const isAppRoot =
+              url.pathname === basePath ||
+              url.pathname === basePath.replace(/\/$/, '') ||
+              url.pathname.endsWith('/index.html');
+            if (isAppRoot) return caches.match('./index.html');
+            return caches.match('./404.html').then((fallback404) => fallback404 || caches.match('./index.html'));
+          })
         )
     );
     return;

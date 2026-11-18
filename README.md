@@ -21,6 +21,8 @@
   Setiap transfer WebRTC diamankan oleh **DTLS** WebRTC ditambah lapisan aplikasi **ECDH P-256 + HKDF-SHA256 + AES-256-GCM**, kode pencocokan **SAS 6 digit**, opsi **PIN Terima 4 digit** (*HMAC challenge-response* tanpa mengirim PIN *plaintext*), serta verifikasi **SHA-256 streaming** penuh sebelum file disimpan.
 - **🎨 Desain Telegram Light + Batik Parang & Standar Web Modern**
   Palet biru Telegram dengan pola vektor *seamless* **Batik Parang**, dialog modal &amp; bilah progres HTML semantik (`<dialog>`, `<progress>`), tombol salin dengan umpan balik langsung yang aksesibel, serta dukungan navigasi keyboard &amp; zoom yang ramah pengguna.
+- **💻 Halaman Error 404 Ala ThinkPad + Batik Parang**
+  Saat rute URL tidak ditemukan di GitHub Pages (maupun saat offline via `Service Worker`), `404.html` menampilkan konsol diagnostik bergaya **ThinkPad Matte Black Carbon** dengan watermark **Batik Parang**, tombol pintasan `F1–F4` (simulasi `404/403/500/503`), kontrol TrackPoint 3 tombol (`Beranda`, `GitHub Saya`, `Kembali`), salin log TTY, serta jeda animasi aksesibel.
 - **📲 Dukungan PWA &amp; Offline**
   Dapat diinstal di desktop maupun ponsel dan berjalan offline melalui `Service Worker`.
 

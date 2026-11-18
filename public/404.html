@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b0b0d" />
+    <meta
+      name="description"
+      content="Halaman status ThinkError bergaya ThinkPad Batik Parang untuk ThinkSend PWA."
+    />
+    <title>404 Halaman Tidak Ditemukan | ThinkSend</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23141418'/%3E%3Crect x='5' y='5' width='54' height='54' rx='10' fill='none' stroke='%232e2e36' stroke-width='2'/%3E%3Ccircle cx='32' cy='32' r='11' fill='%23e60012'/%3E%3Ccircle cx='28' cy='28' r='3' fill='%23ff7580' opacity='.65'/%3E%3C/svg%3E"
+    />
+    <style>
+      :root {
+        --tp-bg: #0b0b0d;
+        --tp-chassis: #141418;
+        --tp-surface: #1b1b21;
+        --tp-key: #202028;
+        --tp-key-hover: #292934;
+        --tp-border: #2e2e38;
+        --tp-border-strong: #3f3f4d;
+        --tp-text: #f4f4f5;
+        --tp-muted: #b4b4c0;
+        --tp-red: #e60012;
+        --tp-red-text: #ff5c6a;
+        --tp-blue: #0066cc;
+        --tp-blue-text: #60a5fa;
+        --tp-amber-text: #fbbf24;
+        --tp-green-text: #4ade80;
+        --accent-current: #e60012;
+        --accent-text: #ff5c6a;
+        --glitch-color-1: #e60012;
+        --glitch-color-2: #0066cc;
+        --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html {
+        color-scheme: dark;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        background-color: var(--tp-bg);
+        color: var(--tp-text);
+        font-family: var(--font-sans);
+        line-height: 1.5;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 16px 12px 24px;
+        position: relative;
+      }
+
+      /* Skip link (MWG Accessibility) */
+      .visually-hidden:where(:not(:focus-within, :active)) {
+        position: absolute !important;
+        clip-path: inset(50%) !important;
+        overflow: hidden !important;
+        width: 1px !important;
+        height: 1px !important;
+        margin: -1px !important;
+        padding: 0 !important;
+        border: 0 !important;
+        white-space: nowrap !important;
+      }
+
+      .skip-link:focus-visible {
+        position: fixed;
+        inset-block-start: 12px;
+        inset-inline-start: 12px;
+        z-index: 100;
+        padding: 10px 16px;
+        border-radius: 6px;
+        background: var(--tp-red);
+        color: #ffffff;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      :where(a:any-link, button):focus-visible {
+        outline: 3px solid #ff4757;
+        outline-offset: 2px;
+      }
+
+      /* ThinkPad Carbon Fiber Weave Backdrop */
+      .bg-thinkpad-carbon {
+        position: fixed;
+        inset: 0;
+        z-index: -4;
+        background-color: #0d0d10;
+        background-image:
+          radial-gradient(circle at 50% 0%, rgba(230, 0, 18, 0.14) 0%, transparent 56%),
+          radial-gradient(circle at 85% 90%, rgba(0, 102, 204, 0.12) 0%, transparent 52%),
+          linear-gradient(27deg, #121216 5px, transparent 5px),
+          linear-gradient(207deg, #121216 5px, transparent 5px),
+          linear-gradient(27deg, #17171d 5px, transparent 5px),
+          linear-gradient(207deg, #17171d 5px, transparent 5px),
+          linear-gradient(90deg, #0d0d10 10px, transparent 10px),
+          linear-gradient(#121216 25%, #0d0d10 25%, #0d0d10 50%, transparent 50%, transparent 75%, #16161b 75%, #16161b);
+        background-size: 100% 100%, 100% 100%, 20px 20px, 20px 20px, 20px 20px, 20px 20px, 20px 20px, 20px 20px;
+        background-position: 0 0, 0 0, 0 5px, 10px 0, 0 10px, 10px 5px, 0 0, 0 0;
+      }
+
+      /* Batik Parang Watermark Pattern adapted to ThinkPad Matte Carbon */
+      .batik-parang-bg {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -3;
+        pointer-events: none;
+        opacity: 0.72;
+      }
+
+      .batik-parang-bg .parang-fill {
+        fill: rgba(230, 0, 18, 0.036);
+      }
+
+      .batik-parang-bg .parang-fill-soft {
+        fill: rgba(255, 255, 255, 0.02);
+      }
+
+      .batik-parang-bg .parang-stroke {
+        fill: none;
+        stroke: rgba(230, 0, 18, 0.12);
+        stroke-width: 1.05;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .batik-parang-bg .parang-detail {
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.065);
+        stroke-width: 0.85;
+        stroke-linecap: round;
+      }
+
+      .batik-parang-bg .parang-border {
+        fill: none;
+        stroke: rgba(0, 102, 204, 0.09);
+        stroke-width: 0.85;
+      }
+
+      .batik-parang-bg .parang-dot {
+        fill: rgba(255, 255, 255, 0.08);
+      }
+
+      #particle-canvas {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -2;
+        pointer-events: none;
+      }
+
+      .scanlines {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        pointer-events: none;
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%);
+        background-size: 100% 4px;
+      }
+
+      /* Outer Shell */
+      .shell-wrap {
+        width: 100%;
+        max-width: 980px;
+        position: relative;
+        z-index: 10;
+      }
+
+      .tp-chassis {
+        background: rgba(20, 20, 24, 0.94);
+        border: 1px solid var(--tp-border);
+        border-radius: 14px;
+        box-shadow:
+          0 24px 64px rgba(0, 0, 0, 0.78),
+          0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+        overflow: hidden;
+        transition: transform 0.22s ease-out;
+        will-change: transform;
+      }
+
+      /* Top ThinkPad Bezel Bar */
+      .tp-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px 14px;
+        padding: 12px 16px;
+        background: #101014;
+        border-bottom: 1px solid var(--tp-border);
+      }
+
+      .brand-lockup {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .think-wordmark {
+        display: inline-flex;
+        align-items: baseline;
+        font-family: var(--font-sans);
+        font-weight: 800;
+        font-size: 1.24rem;
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+        color: #ffffff;
+        user-select: none;
+      }
+
+      .think-wordmark .i-stem {
+        position: relative;
+        display: inline-block;
+      }
+
+      .think-red-dot {
+        position: absolute;
+        top: -0.04em;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0.25em;
+        height: 0.25em;
+        border-radius: 50%;
+        background-color: var(--tp-red);
+        box-shadow: 0 0 6px var(--tp-red);
+      }
+
+      .brand-tag {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        color: var(--tp-muted);
+        border-left: 1px solid var(--tp-border-strong);
+        padding-left: 10px;
+        white-space: nowrap;
+      }
+
+      .header-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        flex: 1 1 auto;
+        max-width: 100%;
+        min-width: 0;
+      }
+
+      @media (min-width: 640px) {
+        .header-controls {
+          justify-content: flex-end;
+          gap: 8px;
+        }
+      }
+
+      /* MWG-compliant Single-Row Horizontal Scrolling Tablist */
+      .fn-tablist {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: stretch;
+        gap: 5px;
+        overflow-x: auto;
+        scroll-snap-type: inline proximity;
+        scrollbar-width: none;
+        padding: 2px;
+        max-width: 100%;
+        min-width: 0;
+      }
+
+      .fn-tablist::-webkit-scrollbar {
+        display: none;
+      }
+
+      .fn-tab {
+        position: relative;
+        flex: none;
+        scroll-snap-align: start;
+        min-inline-size: 54px;
+        min-block-size: 36px;
+        padding: 6px 8px 8px;
+        border-radius: 7px;
+        border: 1px solid var(--tp-border);
+        background: var(--tp-key);
+        color: var(--tp-muted);
+        font-family: var(--font-mono);
+        font-size: 0.74rem;
+        font-weight: 600;
+        line-height: 1.1;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+      }
+
+      .fn-tab:hover {
+        background: var(--tp-key-hover);
+        color: #ffffff;
+      }
+
+      .fn-tab .fn-key {
+        color: #93c5fd;
+        font-size: 0.66rem;
+      }
+
+      /* Active state uses aria-selected + pseudo-element border (Forced Colors safe, zero size shift) */
+      .fn-tab[aria-selected='true'] {
+        background: #25252f;
+        color: #ffffff;
+        border-color: var(--tp-border-strong);
+      }
+
+      .fn-tab[aria-selected='true']::after {
+        content: '';
+        position: absolute;
+        inset: auto 8px 0;
+        border-block-end: 3px solid var(--accent-current);
+        border-radius: 2px;
+      }
+
+      .motion-btn {
+        flex: none;
+        min-inline-size: 36px;
+        min-block-size: 36px;
+        padding: 6px 8px;
+        border-radius: 7px;
+        border: 1px solid var(--tp-border);
+        background: var(--tp-key);
+        color: var(--tp-muted);
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: background-color 0.15s ease, color 0.15s ease;
+      }
+
+      @media (max-width: 420px) {
+        .tp-header {
+          padding: 10px 12px;
+        }
+        .fn-tablist {
+          gap: 4px;
+        }
+        .fn-tab {
+          min-inline-size: 48px;
+          padding: 6px 6px 8px;
+          font-size: 0.7rem;
+          gap: 3px;
+        }
+        .motion-btn {
+          padding: 6px 7px;
+          font-size: 0.7rem;
+        }
+      }
+
+      .motion-btn:hover {
+        background: var(--tp-key-hover);
+        color: #ffffff;
+      }
+
+      .motion-btn svg {
+        width: 14px;
+        height: 14px;
+        flex: none;
+      }
+
+      /* Main Error Panel Layout */
+      .tp-main {
+        padding: 20px 18px 18px;
+      }
+
+      .panel-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 20px;
+        align-items: center;
+      }
+
+      @media (min-width: 780px) {
+        .tp-main {
+          padding: 28px 28px 20px;
+        }
+        .panel-grid {
+          grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+          gap: 28px;
+        }
+      }
+
+      /* Left Stage: Illustration Monitor */
+      .illus-stage {
+        margin: 0;
+        background:
+          radial-gradient(circle at 50% 42%, rgba(230, 0, 18, 0.08), transparent 68%),
+          linear-gradient(180deg, #111115 0%, #0d0d11 100%);
+        border: 1px solid var(--tp-border);
+        border-radius: 12px;
+        padding: 16px 14px 12px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .illus-stage::before {
+        content: '';
+        position: absolute;
+        inset: 6px;
+        border: 1px dashed rgba(255, 255, 255, 0.06);
+        border-radius: 8px;
+        pointer-events: none;
+      }
+
+      .illus-lcd-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        color: var(--tp-muted);
+        margin-bottom: 6px;
+        padding: 0 4px;
+      }
+
+      .led-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-current);
+        margin-right: 6px;
+      }
+
+      .illus-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 205px;
+      }
+
+      .illus-box svg {
+        width: 100%;
+        max-width: 245px;
+        height: auto;
+        display: block;
+      }
+
+      .illus-caption {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--tp-muted);
+        text-align: center;
+      }
+
+      /* Right Stage: Diagnostics & Error Copy */
+      .diag-col {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .status-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        align-self: flex-start;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #1d1d24;
+        border: 1px solid var(--tp-border-strong);
+        font-family: var(--font-mono);
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: var(--accent-text);
+      }
+
+      .glitch-wrapper {
+        position: relative;
+        display: inline-block;
+        align-self: flex-start;
+      }
+
+      .glitch {
+        position: relative;
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: clamp(3.3rem, 11vw, 4.9rem);
+        line-height: 0.95;
+        letter-spacing: -0.05em;
+        color: #ffffff;
+        user-select: none;
+      }
+
+      .glitch::before,
+      .glitch::after {
+        content: attr(data-text);
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+      }
+
+      h1.error-title {
+        margin: 0;
+        font-size: clamp(1.35rem, 3.6vw, 1.85rem);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: #ffffff;
+        line-height: 1.2;
+      }
+
+      .sr-code {
+        color: var(--accent-text);
+        font-family: var(--font-mono);
+        font-size: 0.92em;
+      }
+
+      .error-desc {
+        margin: 0;
+        color: var(--tp-muted);
+        font-size: 0.95rem;
+        max-width: 56ch;
+      }
+
+      /* TTY Diagnostic Terminal Bar + MWG Copy Button */
+      .tty-card {
+        background: #09090c;
+        border: 1px solid var(--tp-border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .tty-code {
+        margin: 0;
+        flex: 1 1 200px;
+        min-width: 0;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        color: #e4e4e7;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 2px;
+        scrollbar-width: thin;
+        scrollbar-color: #3f3f4d transparent;
+      }
+
+      .tty-code code {
+        font-family: inherit;
+      }
+
+      .tty-prompt {
+        color: var(--tp-green-text);
+      }
+
+      .copy-wrap {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        flex: none;
+      }
+
+      .copy-btn {
+        min-inline-size: 74px;
+        min-block-size: 36px;
+        padding: 6px 11px;
+        border-radius: 7px;
+        border: 1px solid var(--tp-border-strong);
+        background: var(--tp-key);
+        color: #f4f4f5;
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      }
+
+      .copy-btn:hover {
+        background: var(--tp-key-hover);
+      }
+
+      .copy-btn[data-copied] {
+        border-color: #22c55e;
+        color: var(--tp-green-text);
+      }
+
+      .copy-btn[data-failed] {
+        border-color: var(--tp-red);
+        color: var(--tp-red-text);
+      }
+
+      .copy-icon-slot {
+        display: inline-flex;
+        width: 15px;
+        height: 15px;
+      }
+
+      .copy-icon-slot svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      .copy-btn .icon-check {
+        display: none;
+      }
+
+      .copy-btn[data-copied] .icon-copy {
+        display: none;
+      }
+
+      .copy-btn[data-copied] .icon-check {
+        display: block;
+      }
+
+      .copy-tip {
+        position: absolute;
+        inset-block-end: calc(100% + 6px);
+        inset-inline-end: 0;
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: #0f172a;
+        border: 1px solid var(--tp-border-strong);
+        color: #f8fafc;
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.16s ease;
+      }
+
+      .copy-tip:not(:empty) {
+        opacity: 1;
+      }
+
+      /* TrackPoint Red Cap + Classic 3-Button Navigation Bar */
+      .trackpoint-deck {
+        margin-top: 22px;
+        padding-top: 16px;
+        border-top: 1px solid var(--tp-border);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .trackpoint-rail {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .rail-line {
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--tp-border-strong), transparent);
+      }
+
+      .trackpoint-btn {
+        min-inline-size: 40px;
+        min-block-size: 40px;
+        padding: 0;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        background: #101015;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.15s ease, border-color 0.15s ease;
+      }
+
+      .trackpoint-btn:hover {
+        border-color: rgba(230, 0, 18, 0.75);
+        transform: scale(1.06);
+      }
+
+      .trackpoint-cap {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: block;
+        background: radial-gradient(circle at 35% 35%, #ff4757 0%, #e60012 58%, #8f000c 100%);
+        background-image:
+          radial-gradient(#7a0009 20%, transparent 21%),
+          radial-gradient(#7a0009 20%, transparent 21%),
+          radial-gradient(circle at 35% 35%, #ff4757 0%, #e60012 60%, #8f000c 100%);
+        background-size: 4px 4px, 4px 4px, 100% 100%;
+        background-position: 0 0, 2px 2px, 0 0;
+        box-shadow: 0 0 12px rgba(230, 0, 18, 0.65), inset 0 1px 2px rgba(255, 255, 255, 0.35);
+      }
+
+      .trackpoint-hint {
+        margin: -4px 0 0;
+        font-family: var(--font-mono);
+        font-size: 0.74rem;
+        color: var(--tp-muted);
+        text-align: center;
+      }
+
+      /* Classic Sculpted 3-Button TrackPoint Deck */
+      .tp-mouse-bar {
+        width: 100%;
+        max-width: 640px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .tp-mouse-btn {
+        min-inline-size: 44px;
+        min-block-size: 46px;
+        padding: 10px 10px;
+        border: 1px solid var(--tp-border-strong);
+        border-radius: 8px;
+        background: linear-gradient(180deg, #25252e 0%, #191920 100%);
+        color: #f4f4f5;
+        font-family: var(--font-sans);
+        font-size: 0.88rem;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+      }
+
+      .tp-mouse-btn:hover {
+        background: linear-gradient(180deg, #2e2e39 0%, #202028 100%);
+        border-color: #525266;
+      }
+
+      .tp-mouse-btn:active {
+        transform: translateY(1px);
+      }
+
+      .tp-mouse-btn svg {
+        width: 16px;
+        height: 16px;
+        flex: none;
+      }
+
+      /* ThinkPad Left Primary Red Stripe & Center IBM Blue Scroll Stripe */
+      .tp-mouse-btn--primary::before {
+        content: '';
+        position: absolute;
+        inset: 3px 16px auto;
+        height: 3px;
+        border-radius: 99px;
+        background: var(--tp-red);
+      }
+
+      .tp-mouse-btn--middle::before {
+        content: '';
+        position: absolute;
+        inset: 3px 16px auto;
+        height: 3px;
+        border-radius: 99px;
+        background: var(--tp-blue);
+      }
+
+      .tp-mouse-btn--right::before {
+        content: '';
+        position: absolute;
+        inset: 3px 16px auto;
+        height: 3px;
+        border-radius: 99px;
+        background: #71717a;
+      }
+
+      @media (max-width: 390px) {
+        .tp-mouse-btn {
+          font-size: 0.78rem;
+          gap: 5px;
+          padding: 10px 6px;
+        }
+        .tp-mouse-btn svg {
+          width: 14px;
+          height: 14px;
+        }
+      }
+
+      /* Chassis Footer Bezel */
+      .tp-footer {
+        padding: 10px 16px;
+        background: #0f0f13;
+        border-top: 1px solid var(--tp-border);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px 14px;
+        font-family: var(--font-mono);
+        font-size: 0.74rem;
+        color: var(--tp-muted);
+      }
+
+      .footer-links {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .footer-link {
+        color: #f4f4f5;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        min-block-size: 28px;
+        padding: 2px 8px;
+        border-radius: 6px;
+        border: 1px solid var(--tp-border);
+        background: var(--tp-key);
+      }
+
+      .footer-link:hover {
+        background: var(--tp-key-hover);
+        border-color: var(--tp-red);
+      }
+
+      /* Opt-in Motion Only (MWG Motion Guide + WCAG 2.2.2 Pause support) */
+      @keyframes redDotPulse {
+        0%, 100% {
+          box-shadow: 0 0 8px #e60012, 0 0 16px #e60012;
+          opacity: 1;
+        }
+        50% {
+          box-shadow: 0 0 3px #e60012, 0 0 6px #e60012;
+          opacity: 0.72;
+        }
+      }
+
+      @keyframes glitch-anim {
+        0% { clip-path: inset(12% 0 68% 0); transform: translate(-2px, 0); opacity: 0.85; }
+        20% { clip-path: inset(48% 0 22% 0); transform: translate(2px, 0); opacity: 0.75; }
+        40% { clip-path: inset(75% 0 8% 0); transform: translate(-1px, 0); opacity: 0.85; }
+        60% { clip-path: inset(18% 0 58% 0); transform: translate(2px, 0); opacity: 0.65; }
+        80% { clip-path: inset(60% 0 18% 0); transform: translate(-2px, 0); opacity: 0.8; }
+        100% { clip-path: inset(30% 0 42% 0); transform: translate(0, 0); opacity: 0.7; }
+      }
+
+      @keyframes glitch-anim-2 {
+        0% { clip-path: inset(62% 0 12% 0); transform: translate(2px, 0); opacity: 0.8; }
+        25% { clip-path: inset(10% 0 66% 0); transform: translate(-2px, 0); opacity: 0.75; }
+        50% { clip-path: inset(42% 0 32% 0); transform: translate(1px, 0); opacity: 0.85; }
+        75% { clip-path: inset(72% 0 6% 0); transform: translate(-1px, 0); opacity: 0.65; }
+        100% { clip-path: inset(22% 0 54% 0); transform: translate(0, 0); opacity: 0.75; }
+      }
+
+      @keyframes floatSlow {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-6px); }
+      }
+
+      @keyframes sobShake {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-2.5px); }
+      }
+
+      @keyframes tearDrop {
+        0% { transform: translateY(0) scale(0.85); opacity: 0; }
+        30% { opacity: 1; }
+        100% { transform: translateY(20px) scale(1.05); opacity: 0; }
+      }
+
+      @keyframes sadSigh {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(3px) rotate(-1.2deg); }
+      }
+
+      @keyframes sleepyNod {
+        0%, 100% { transform: rotate(0deg) translateY(0); }
+        60% { transform: rotate(9deg) translateY(5px); }
+        75% { transform: rotate(-2deg) translateY(-1px); }
+      }
+
+      @keyframes zzzFloat {
+        0% { transform: translate(0, 0) scale(0.7); opacity: 0; }
+        35% { opacity: 1; }
+        100% { transform: translate(14px, -22px) scale(1.15); opacity: 0; }
+      }
+
+      @keyframes kitabHover {
+        0%, 100% { transform: translateY(0) rotate(-1deg); }
+        50% { transform: translateY(-7px) rotate(1.5deg); }
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        html:not(.motion-paused) .think-red-dot {
+          animation: redDotPulse 2.4s infinite ease-in-out;
+        }
+        html:not(.motion-paused) .glitch::before {
+          left: 2px;
+          color: var(--glitch-color-1);
+          animation: glitch-anim-2 3.2s infinite linear alternate-reverse;
+        }
+        html:not(.motion-paused) .glitch::after {
+          left: -2px;
+          color: var(--glitch-color-2);
+          animation: glitch-anim 2.6s infinite linear alternate-reverse;
+        }
+        html:not(.motion-paused) .animate-float {
+          animation: floatSlow 4.8s ease-in-out infinite;
+        }
+        html:not(.motion-paused) .animate-sob {
+          animation: sobShake 0.9s infinite ease-in-out;
+        }
+        html:not(.motion-paused) .animate-tear-1 {
+          animation: tearDrop 1.4s infinite ease-in;
+        }
+        html:not(.motion-paused) .animate-tear-2 {
+          animation: tearDrop 1.4s infinite ease-in 0.7s;
+        }
+        html:not(.motion-paused) .animate-sigh {
+          animation: sadSigh 3.2s infinite ease-in-out;
+        }
+        html:not(.motion-paused) .animate-nod {
+          transform-origin: 110px 110px;
+          animation: sleepyNod 3.5s infinite ease-in-out;
+        }
+        html:not(.motion-paused) .animate-zzz-1 {
+          animation: zzzFloat 2.4s infinite linear;
+        }
+        html:not(.motion-paused) .animate-zzz-2 {
+          animation: zzzFloat 2.4s infinite linear 0.8s;
+        }
+        html:not(.motion-paused) .animate-zzz-3 {
+          animation: zzzFloat 2.4s infinite linear 1.6s;
+        }
+        html:not(.motion-paused) .animate-kitab {
+          animation: kitabHover 3.4s ease-in-out infinite;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .tp-chassis,
+        .copy-tip,
+        .trackpoint-btn,
+        .tp-mouse-btn,
+        .fn-tab {
+          transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+        }
+      }
+
+      @media (forced-colors: active) {
+        .tp-chassis,
+        .illus-stage,
+        .tty-card,
+        .fn-tab,
+        .tp-mouse-btn,
+        .copy-btn {
+          border: 1px solid CanvasText;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link visually-hidden">Lewati ke konten utama</a>
+
+    <div class="bg-thinkpad-carbon" aria-hidden="true"></div>
+
+    <!-- Watermark Batik Parang ThinkSend pada sasis matte hitam ThinkPad -->
+    <svg class="batik-parang-bg" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <g id="parang-motif">
+          <path
+            class="parang-fill"
+            d="M 0 58 C 9 37, 22 12, 44 10 C 59 8, 65 19, 57 31 C 51 40, 44 44, 37 58 Z"
+          />
+          <path
+            class="parang-stroke"
+            d="M 0 58 C 9 37, 22 12, 44 10 C 59 8, 65 19, 57 31 C 51 40, 44 44, 37 58"
+          />
+          <path
+            class="parang-stroke"
+            d="M 45 17 C 54 15, 58 22, 53 29 C 49 34, 41 33, 41 26 C 41 22, 46 20, 49 23"
+          />
+          <path class="parang-detail" d="M 9 57 C 16 40, 26 21, 40 17" />
+          <path class="parang-detail" d="M 16 57 C 22 42, 31 27, 41 24" />
+          <path class="parang-detail" d="M 23 57 C 29 45, 35 34, 42 32" />
+          <path class="parang-detail" d="M 37 58 C 41 49, 44 47, 46.5 47 C 49 47, 52 49, 56 58" />
+          <circle class="parang-dot" cx="46.5" cy="51.8" r="1.25" />
+          <circle class="parang-dot" cx="43.5" cy="55.3" r="1" />
+          <circle class="parang-dot" cx="49.5" cy="55.3" r="1" />
+          <path class="parang-detail" d="M 55 10 C 60 11, 63 14, 61 19" />
+          <circle class="parang-dot" cx="63.5" cy="12.5" r="1.1" />
+          <path
+            class="parang-fill-soft"
+            d="M 28 76 Q 32 82 39 86 Q 32 90 28 96 Q 24 90 17 86 Q 24 82 28 76 Z"
+          />
+          <path
+            class="parang-stroke"
+            d="M 28 76 Q 32 82 39 86 Q 32 90 28 96 Q 24 90 17 86 Q 24 82 28 76 Z"
+          />
+          <path class="parang-detail" d="M 28 80.5 L 33.5 86 L 28 91.5 L 22.5 86 Z" />
+          <circle class="parang-dot" cx="28" cy="86" r="1.3" />
+          <path class="parang-fill-soft" d="M 0 80 L 6 86 L 0 92 L -6 86 Z" />
+          <path class="parang-detail" d="M 0 80 L 6 86 L 0 92 L -6 86 Z" />
+          <circle class="parang-dot" cx="0" cy="86" r="1.1" />
+          <circle class="parang-dot" cx="11.5" cy="86" r="1.1" />
+          <circle class="parang-dot" cx="44.5" cy="86" r="1.1" />
+        </g>
+        <pattern
+          id="batik-parang-dark"
+          width="56"
+          height="104"
+          patternUnits="userSpaceOnUse"
+          patternTransform="rotate(-45)"
+        >
+          <line class="parang-border" x1="-10" y1="3" x2="66" y2="3" />
+          <line class="parang-border" x1="-10" y1="6" x2="66" y2="6" />
+          <line class="parang-border" x1="-10" y1="62" x2="66" y2="62" />
+          <line class="parang-border" x1="-10" y1="65" x2="66" y2="65" />
+          <use href="#parang-motif" x="-56" y="0" />
+          <use href="#parang-motif" x="0" y="0" />
+          <use href="#parang-motif" x="56" y="0" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#batik-parang-dark)" />
+    </svg>
+
+    <canvas id="particle-canvas" aria-hidden="true"></canvas>
+    <div class="scanlines" aria-hidden="true"></div>
+
+    <div class="shell-wrap">
+      <div id="tilt-card" class="tp-chassis">
+        <header class="tp-header">
+          <div class="brand-lockup">
+            <span class="think-wordmark">
+              Th<span class="i-stem">&inodot;<span class="think-red-dot" aria-hidden="true"></span></span>nkSend
+            </span>
+            <span class="brand-tag">DIAGNOSTIC-OS</span>
+          </div>
+
+          <div class="header-controls">
+            <div
+              id="error-tablist"
+              class="fn-tablist"
+              role="tablist"
+              focusgroup="tablist nomemory"
+              aria-label="Simulasi Kode Status ThinkError"
+            >
+              <button
+                type="button"
+                id="tab-404"
+                class="fn-tab"
+                data-code="404"
+                role="tab"
+                aria-selected="true"
+                focusgroupstart
+              >
+                <span class="fn-key">F1</span><span>404</span>
+              </button>
+              <button
+                type="button"
+                id="tab-403"
+                class="fn-tab"
+                data-code="403"
+                role="tab"
+                aria-selected="false"
+                tabindex="-1"
+              >
+                <span class="fn-key">F2</span><span>403</span>
+              </button>
+              <button
+                type="button"
+                id="tab-500"
+                class="fn-tab"
+                data-code="500"
+                role="tab"
+                aria-selected="false"
+                tabindex="-1"
+              >
+                <span class="fn-key">F3</span><span>500</span>
+              </button>
+              <button
+                type="button"
+                id="tab-503"
+                class="fn-tab"
+                data-code="503"
+                role="tab"
+                aria-selected="false"
+                tabindex="-1"
+              >
+                <span class="fn-key">F4</span><span>503</span>
+              </button>
+            </div>
+
+            <button type="button" id="motion-toggle-btn" class="motion-btn">
+              <svg id="motion-icon-pause" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="6" y="4" width="4" height="16" rx="1" />
+                <rect x="14" y="4" width="4" height="16" rx="1" />
+              </svg>
+              <svg id="motion-icon-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none">
+                <polygon points="6 4 20 12 6 20 6 4" />
+              </svg>
+              <span id="motion-btn-label">Jeda</span>
+            </button>
+          </div>
+        </header>
+
+        <main id="main-content" class="tp-main" tabindex="-1">
+          <div id="error-panel" role="tabpanel" aria-labelledby="tab-404">
+            <div class="panel-grid">
+              <!-- Ilustrasi Santriwati & ThinkPad -->
+              <figure class="illus-stage" aria-labelledby="illus-caption">
+                <div class="illus-lcd-bar">
+                  <span><span class="led-dot" aria-hidden="true"></span><span id="lcd-bay-label">DISPLAY-0 • BATIK EDITION</span></span>
+                  <span id="lcd-code-tag">ERR::404</span>
+                </div>
+                <div id="svg-stage" class="illus-box"></div>
+                <figcaption id="illus-caption" class="illus-caption">
+                  Santriwati ThinkSend panik mencari rute berkas yang hilang di ThinkPad.
+                </figcaption>
+              </figure>
+
+              <!-- Info Diagnostik & Perintah TTY -->
+              <div class="diag-col">
+                <div id="status-chip" class="status-chip">
+                  <span class="led-dot" aria-hidden="true"></span>
+                  <span id="status-code-label">STATUS: E_PATH_NOT_FOUND</span>
+                </div>
+
+                <div class="glitch-wrapper" aria-hidden="true">
+                  <div id="glitch-display" class="glitch" data-text="404">404</div>
+                </div>
+
+                <h1 id="error-heading" class="error-title">
+                  <span id="error-code-sr" class="sr-code">404</span> —
+                  <span id="error-title-text">Halaman Tidak Ditemukan</span>
+                </h1>
+
+                <p id="error-desc" class="error-desc">
+                  Alamat atau rute yang Anda buka tidak tersedia di ThinkSend. Periksa kembali penulisan URL atau kembali ke beranda untuk melanjutkan transfer file.
+                </p>
+
+                <div class="tty-card">
+                  <pre class="tty-code"><code id="diagnosticCommand"><span class="tty-prompt">thinksend@tty0:~$</span> <span id="diag-cmd-body">probe --route "/404" --status 404</span></code></pre>
+                  <span class="copy-wrap">
+                    <button
+                      type="button"
+                      id="copy-diag-btn"
+                      class="copy-btn"
+                      command="--copy"
+                      commandfor="diagnosticCommand"
+                      aria-label="Salin log perintah diagnostik"
+                    >
+                      <span class="copy-icon-slot" aria-hidden="true">
+                        <svg class="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="9" y="9" width="13" height="13" rx="2" />
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                        </svg>
+                        <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </span>
+                      <span class="copy-label">Salin</span>
+                    </button>
+                    <span class="copy-tip" role="status"></span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Kontrol TrackPoint & Baris 3 Tombol Klasik ThinkPad -->
+            <div class="trackpoint-deck">
+              <div class="trackpoint-rail">
+                <span class="rail-line" aria-hidden="true"></span>
+                <button
+                  type="button"
+                  id="trackpoint-btn"
+                  class="trackpoint-btn"
+                  aria-label="Reset diagnostik ke mode 404 (TrackPoint)"
+                >
+                  <span class="trackpoint-cap" aria-hidden="true"></span>
+                </button>
+                <span class="rail-line" aria-hidden="true"></span>
+              </div>
+              <p class="trackpoint-hint">
+                TrackPoint Red Cap: ketuk untuk reset ke mode 404
+              </p>
+
+              <nav class="tp-mouse-bar" aria-label="Navigasi Cepat TrackPoint">
+                <a id="home-link" href="/ThinkSend/" class="tp-mouse-btn tp-mouse-btn--primary">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 10.5L12 3l9 7.5" />
+                    <path d="M5 9.5V21h14V9.5" />
+                  </svg>
+                  <span>Beranda</span>
+                </a>
+                <a
+                  id="github-link"
+                  href="https://github.com/jaiz-lana/ThinkSend"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="tp-mouse-btn tp-mouse-btn--middle"
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 2C6.48 2 2 6.58 2 12.23c0 4.52 2.87 8.35 6.84 9.7.5.1.68-.22.68-.49 0-.24-.01-.88-.01-1.73-2.78.62-3.37-1.38-3.37-1.38-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.35 1.12 2.92.85.09-.66.35-1.12.63-1.37-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.27 2.75 1.05A9.3 9.3 0 0 1 12 6.91c.85 0 1.71.12 2.5.35 1.91-1.32 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.8-4.57 5.05.36.32.68.94.68 1.9 0 1.37-.01 2.48-.01 2.82 0 .27.18.6.69.49A10.22 10.22 0 0 0 22 12.23C22 6.58 17.52 2 12 2Z" />
+                  </svg>
+                  <span>GitHub Saya</span>
+                </a>
+                <button type="button" id="back-btn" class="tp-mouse-btn tp-mouse-btn--right">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M19 12H5" />
+                    <polyline points="12 19 5 12 12 5" />
+                  </svg>
+                  <span>Kembali</span>
+                </button>
+              </nav>
+            </div>
+          </div>
+        </main>
+
+        <footer class="tp-footer">
+          <span>ThinkSend v0.4.2 • Batik × ThinkPad Recovery Shell</span>
+          <span class="footer-links">
+            <span>Tombol cepat: F1–F4</span>
+            <a
+              id="issues-link"
+              class="footer-link"
+              href="https://github.com/jaiz-lana/ThinkSend/issues"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Laporkan Bug
+            </a>
+          </span>
+        </footer>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        function resolveHomeHref() {
+          const p = window.location.pathname || '/';
+          if (p === '/ThinkSend' || p.startsWith('/ThinkSend/')) {
+            return '/ThinkSend/';
+          }
+          return '/';
+        }
+
+        const homeHref = resolveHomeHref();
+        const homeLink = document.getElementById('home-link');
+        if (homeLink) homeLink.setAttribute('href', homeHref);
+
+        const safePath = (window.location.pathname || '/') + (window.location.search || '');
+        const normalizedPath = safePath.slice(0, 90);
+
+        const SVG_BY_CODE = {
+          '404': `
+            <svg aria-hidden="true" viewBox="0 0 220 200" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="screen404" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#1b1b24"/>
+                  <stop offset="100%" stop-color="#0d0d12"/>
+                </linearGradient>
+              </defs>
+              <!-- Bayangan ThinkPad -->
+              <ellipse cx="110" cy="182" rx="74" ry="8" fill="#000000" opacity="0.5"/>
+              <!-- Karakter Santriwati di belakang layar -->
+              <g class="animate-sob">
+                <!-- Jilbab & Kerudung -->
+                <path d="M72 88 C68 50, 152 50, 148 88 L156 134 C135 142, 85 142, 64 134 Z" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+                <!-- Peci / Ciput aksen merah ThinkPad -->
+                <path d="M84 54 C96 42, 124 42, 136 54" fill="none" stroke="#e60012" stroke-width="3" stroke-linecap="round"/>
+                <!-- Wajah -->
+                <ellipse cx="110" cy="84" rx="24" ry="23" fill="#fde6d2"/>
+                <!-- Alis cemas -->
+                <path d="M94 74 L103 71" stroke="#334155" stroke-width="2.4" stroke-linecap="round"/>
+                <path d="M126 74 L117 71" stroke="#334155" stroke-width="2.4" stroke-linecap="round"/>
+                <!-- Mata berkaca -->
+                <circle cx="99" cy="83" r="3.4" fill="#0f172a"/>
+                <circle cx="121" cy="83" r="3.4" fill="#0f172a"/>
+                <circle cx="98" cy="82" r="1.2" fill="#ffffff"/>
+                <circle cx="120" cy="82" r="1.2" fill="#ffffff"/>
+                <!-- Air mata animasi -->
+                <path class="animate-tear-1" d="M99 88 C97 92, 101 94, 99 98 C97 94, 101 92, 99 88 Z" fill="#60a5fa"/>
+                <path class="animate-tear-2" d="M121 88 C119 92, 123 94, 121 98 C119 94, 123 92, 121 88 Z" fill="#60a5fa"/>
+                <!-- Mulut kaget -->
+                <ellipse cx="110" cy="96" rx="4.5" ry="3.2" fill="#be123c"/>
+              </g>
+              <!-- ThinkPad Terbuka di Depan -->
+              <rect x="44" y="106" width="132" height="58" rx="6" fill="#18181f" stroke="#3f3f4d" stroke-width="2.2"/>
+              <rect x="52" y="113" width="116" height="44" rx="3" fill="url(#screen404)"/>
+              <text x="110" y="139" text-anchor="middle" fill="#ff5c6a" font-family="monospace" font-size="16" font-weight="800">404?!</text>
+              <text x="110" y="151" text-anchor="middle" fill="#94a3b8" font-family="monospace" font-size="7">RUTE TIDAK ADA</text>
+              <!-- Base Keyboard + TrackPoint Merah -->
+              <polygon points="34,164 186,164 196,178 24,178" fill="#121218" stroke="#343440" stroke-width="2"/>
+              <rect x="60" y="167" width="100" height="4" rx="1" fill="#272733"/>
+              <circle cx="110" cy="169" r="3.4" fill="#e60012"/>
+              <!-- Tanda tanya melayang -->
+              <text class="animate-float" x="34" y="66" fill="#ff5c6a" font-family="monospace" font-size="22" font-weight="800">?</text>
+              <text class="animate-float" x="172" y="58" fill="#60a5fa" font-family="monospace" font-size="18" font-weight="800">!</text>
+            </svg>`,
+          '403': `
+            <svg aria-hidden="true" viewBox="0 0 220 200" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="110" cy="182" rx="74" ry="8" fill="#000000" opacity="0.5"/>
+              <g class="animate-sigh">
+                <path d="M72 86 C68 48, 152 48, 148 86 L156 134 C135 142, 85 142, 64 134 Z" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+                <path d="M84 52 C96 40, 124 40, 136 52" fill="none" stroke="#0066cc" stroke-width="3" stroke-linecap="round"/>
+                <ellipse cx="110" cy="82" rx="24" ry="22" fill="#fde6d2"/>
+                <!-- Mata menghela napas -->
+                <path d="M94 82 Q99 86 104 82" fill="none" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M116 82 Q121 86 126 82" fill="none" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M104 95 L116 95" stroke="#64748b" stroke-width="2.2" stroke-linecap="round"/>
+              </g>
+              <!-- ThinkPad + Gembok -->
+              <rect x="44" y="106" width="132" height="58" rx="6" fill="#18181f" stroke="#3f3f4d" stroke-width="2.2"/>
+              <rect x="52" y="113" width="116" height="44" rx="3" fill="#0e0e14"/>
+              <g transform="translate(96, 120)">
+                <path d="M7 11V7a7 7 0 0 1 14 0v4" fill="none" stroke="#fbbf24" stroke-width="2.6" stroke-linecap="round"/>
+                <rect x="4" y="11" width="20" height="16" rx="3" fill="#fbbf24"/>
+                <circle cx="14" cy="19" r="2.2" fill="#18181f"/>
+              </g>
+              <polygon points="34,164 186,164 196,178 24,178" fill="#121218" stroke="#343440" stroke-width="2"/>
+              <circle cx="110" cy="169" r="3.4" fill="#e60012"/>
+            </svg>`,
+          '500': `
+            <svg aria-hidden="true" viewBox="0 0 220 200" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="110" cy="182" rx="74" ry="8" fill="#000000" opacity="0.5"/>
+              <g class="animate-nod">
+                <path d="M72 88 C68 50, 152 50, 148 88 L156 134 C135 142, 85 142, 64 134 Z" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+                <ellipse cx="110" cy="84" rx="24" ry="22" fill="#fde6d2"/>
+                <!-- Mata terpejam mengantuk -->
+                <path d="M94 84 Q99 88 104 84" fill="none" stroke="#0f172a" stroke-width="2.4" stroke-linecap="round"/>
+                <path d="M116 84 Q121 88 126 84" fill="none" stroke="#0f172a" stroke-width="2.4" stroke-linecap="round"/>
+                <circle cx="110" cy="96" r="2.4" fill="#e11d48" opacity="0.7"/>
+              </g>
+              <text class="animate-zzz-1" x="148" y="64" fill="#ff5c6a" font-family="monospace" font-size="14" font-weight="700">Z</text>
+              <text class="animate-zzz-2" x="158" y="52" fill="#60a5fa" font-family="monospace" font-size="11" font-weight="700">z</text>
+              <text class="animate-zzz-3" x="166" y="42" fill="#cbd5e1" font-family="monospace" font-size="9" font-weight="700">z</text>
+              <rect x="44" y="108" width="132" height="56" rx="6" fill="#18181f" stroke="#e60012" stroke-width="2"/>
+              <rect x="52" y="114" width="116" height="44" rx="3" fill="#12090c"/>
+              <text x="110" y="136" text-anchor="middle" fill="#ff5c6a" font-family="monospace" font-size="13" font-weight="800">KERNEL PANIC</text>
+              <text x="110" y="149" text-anchor="middle" fill="#f87171" font-family="monospace" font-size="8">500 INTERNAL</text>
+              <polygon points="34,164 186,164 196,178 24,178" fill="#121218" stroke="#343440" stroke-width="2"/>
+              <circle cx="110" cy="169" r="3.4" fill="#e60012"/>
+            </svg>`,
+          '503': `
+            <svg aria-hidden="true" viewBox="0 0 220 200" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="110" cy="182" rx="74" ry="8" fill="#000000" opacity="0.5"/>
+              <!-- Kitab Turats Klasik Melayang -->
+              <g class="animate-kitab">
+                <path d="M52 54 Q110 42 110 62 Q110 42 168 54 L168 96 Q110 86 110 104 Q110 86 52 96 Z" fill="#fef3c7" stroke="#d97706" stroke-width="2.4" stroke-linejoin="round"/>
+                <line x1="110" y1="62" x2="110" y2="104" stroke="#b45309" stroke-width="2"/>
+                <path d="M64 66 H98 M64 75 H96 M64 84 H92" stroke="#92400e" stroke-width="2" stroke-linecap="round"/>
+                <path d="M122 66 H156 M122 75 H154 M122 84 H148" stroke="#92400e" stroke-width="2" stroke-linecap="round"/>
+              </g>
+              <!-- ThinkPad Sinkronisasi Pemeliharaan -->
+              <rect x="44" y="114" width="132" height="50" rx="6" fill="#18181f" stroke="#0066cc" stroke-width="2.2"/>
+              <rect x="52" y="120" width="116" height="38" rx="3" fill="#0b1220"/>
+              <text x="110" y="139" text-anchor="middle" fill="#60a5fa" font-family="monospace" font-size="11" font-weight="800">MAINTENANCE</text>
+              <rect x="70" y="145" width="80" height="5" rx="2.5" fill="#1e293b"/>
+              <rect x="70" y="145" width="52" height="5" rx="2.5" fill="#3b82f6"/>
+              <polygon points="34,164 186,164 196,178 24,178" fill="#121218" stroke="#343440" stroke-width="2"/>
+              <circle cx="110" cy="169" r="3.4" fill="#e60012"/>
+            </svg>`
+        };
+
+        const ERROR_STATES = {
+          '404': {
+            code: '404',
+            tabId: 'tab-404',
+            statusLabel: 'STATUS: E_PATH_NOT_FOUND',
+            lcdTag: 'ERR::404',
+            title: 'Halaman Tidak Ditemukan',
+            desc: 'Alamat atau rute yang Anda buka tidak tersedia di ThinkSend. Periksa kembali penulisan URL atau kembali ke beranda untuk melanjutkan transfer file.',
+            caption: 'Santriwati ThinkSend mencari rute berkas yang hilang di ThinkPad.',
+            cmd: `probe --route "${normalizedPath}" --status 404`,
+            accent: '#e60012',
+            accentText: '#ff5c6a',
+          },
+          '403': {
+            code: '403',
+            tabId: 'tab-403',
+            statusLabel: 'STATUS: E_ACCESS_DENIED',
+            lcdTag: 'ERR::403',
+            title: 'Akses Ditolak',
+            desc: 'Jalur ini terkunci atau memerlukan izin khusus. Pastikan tautan berbagi atau ruang ThinkSend yang Anda buka benar dan belum kedaluwarsa.',
+            caption: 'Gerbang akses terenkripsi menolak pembukaan jalur secara langsung.',
+            cmd: `auth-check --route "${normalizedPath}" --status 403`,
+            accent: '#d97706',
+            accentText: '#fbbf24',
+          },
+          '500': {
+            code: '500',
+            tabId: 'tab-500',
+            statusLabel: 'STATUS: E_KERNEL_FAULT',
+            lcdTag: 'ERR::500',
+            title: 'Gangguan Sistem Internal',
+            desc: 'Terjadi kendala saat memproses permintaan ini. Coba muat ulang halaman atau kembali ke aplikasi utama ThinkSend.',
+            caption: 'Simulasi kernel istirahat sejenak saat menangani permintaan berlebih.',
+            cmd: `dmesg --panic --route "${normalizedPath}" --code 500`,
+            accent: '#e60012',
+            accentText: '#ff5c6a',
+          },
+          '503': {
+            code: '503',
+            tabId: 'tab-503',
+            statusLabel: 'STATUS: E_MAINTENANCE_SYNC',
+            lcdTag: 'ERR::503',
+            title: 'Layanan Sedang Pemeliharaan',
+            desc: 'Node sedang disinkronkan sementara. Anda tetap dapat menggunakan mode QR Optik 100% offline dari halaman utama ThinkSend.',
+            caption: 'Kitab Turats & ThinkPad menyelaraskan berkas pemeliharaan berkala.',
+            cmd: `systemctl status thinksend-relay --code 503`,
+            accent: '#0066cc',
+            accentText: '#60a5fa',
+          },
+        };
+
+        const rootEl = document.documentElement;
+        const tablist = document.getElementById('error-tablist');
+        const tabs = Array.from(tablist.querySelectorAll('[role="tab"]'));
+        const panel = document.getElementById('error-panel');
+        const svgStage = document.getElementById('svg-stage');
+        const lcdTag = document.getElementById('lcd-code-tag');
+        const captionEl = document.getElementById('illus-caption');
+        const statusLabelEl = document.getElementById('status-code-label');
+        const glitchEl = document.getElementById('glitch-display');
+        const codeSrEl = document.getElementById('error-code-sr');
+        const titleEl = document.getElementById('error-title-text');
+        const descEl = document.getElementById('error-desc');
+        const diagBodyEl = document.getElementById('diag-cmd-body');
+        const trackpointBtn = document.getElementById('trackpoint-btn');
+        const backBtn = document.getElementById('back-btn');
+        const motionToggleBtn = document.getElementById('motion-toggle-btn');
+        const motionBtnLabel = document.getElementById('motion-btn-label');
+
+        const hasFocusGroup = Object.hasOwn(HTMLElement.prototype, 'focusGroup');
+        let currentCode = '404';
+
+        function applyMode(code, options = {}) {
+          const st = ERROR_STATES[code] || ERROR_STATES['404'];
+          currentCode = st.code;
+
+          rootEl.style.setProperty('--accent-current', st.accent);
+          rootEl.style.setProperty('--accent-text', st.accentText);
+
+          svgStage.innerHTML = SVG_BY_CODE[st.code];
+          lcdTag.textContent = st.lcdTag;
+          captionEl.textContent = st.caption;
+          statusLabelEl.textContent = st.statusLabel;
+          glitchEl.textContent = st.code;
+          glitchEl.setAttribute('data-text', st.code);
+          codeSrEl.textContent = st.code;
+          titleEl.textContent = st.title;
+          descEl.textContent = st.desc;
+          diagBodyEl.textContent = st.cmd;
+          panel.setAttribute('aria-labelledby', st.tabId);
+          document.title = `${st.code} ${st.title} | ThinkSend`;
+
+          for (const tab of tabs) {
+            const selected = tab.dataset.code === st.code;
+            tab.setAttribute('aria-selected', selected ? 'true' : 'false');
+            tab.toggleAttribute('focusgroupstart', selected);
+            if (hasFocusGroup) {
+              tab.removeAttribute('tabindex');
+            } else {
+              tab.tabIndex = selected ? 0 : -1;
+            }
+            if (selected) {
+              if (options.focusTab) tab.focus({ preventScroll: true });
+              try {
+                tab.scrollIntoView({ block: 'nearest', inline: 'nearest', container: 'nearest' });
+              } catch {
+                tab.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+              }
+            }
+          }
+        }
+
+        // Support click + selection follows focus (MWG Tabs)
+        for (const tab of tabs) {
+          tab.addEventListener('click', () => {
+            applyMode(tab.dataset.code);
+          });
+          tab.addEventListener('focus', () => {
+            if (tab.dataset.code !== currentCode) {
+              applyMode(tab.dataset.code);
+            }
+          });
+        }
+
+        // ArrowLeft / ArrowRight / Home / End keyboard navigation fallback when native focusGroup is absent
+        if (!hasFocusGroup) {
+          tablist.addEventListener('keydown', (event) => {
+            const idx = tabs.indexOf(document.activeElement);
+            if (idx === -1) return;
+            let nextIdx = -1;
+            if (event.key === 'ArrowRight') nextIdx = (idx + 1) % tabs.length;
+            else if (event.key === 'ArrowLeft') nextIdx = (idx - 1 + tabs.length) % tabs.length;
+            else if (event.key === 'Home') nextIdx = 0;
+            else if (event.key === 'End') nextIdx = tabs.length - 1;
+            if (nextIdx !== -1) {
+              event.preventDefault();
+              applyMode(tabs[nextIdx].dataset.code, { focusTab: true });
+            }
+          });
+        }
+
+        // Global Function Keys F1-F4 / 1-4 (never intercept modifier combinations)
+        document.addEventListener('keydown', (event) => {
+          if (event.ctrlKey || event.altKey || event.metaKey) return;
+          const targetTag = event.target && event.target.tagName;
+          if (targetTag === 'INPUT' || targetTag === 'TEXTAREA') return;
+
+          const keyMap = {
+            F1: '404',
+            '1': '404',
+            F2: '403',
+            '2': '403',
+            F3: '500',
+            '3': '500',
+            F4: '503',
+            '4': '503',
+          };
+          const mapped = keyMap[event.key];
+          if (mapped) {
+            if (event.key.startsWith('F')) event.preventDefault();
+            applyMode(mapped);
+          }
+        });
+
+        trackpointBtn.addEventListener('click', () => {
+          applyMode('404');
+        });
+
+        backBtn.addEventListener('click', () => {
+          if (window.history.length > 1) {
+            window.history.back();
+          } else {
+            window.location.href = homeHref;
+          }
+        });
+
+        // MWG Copy Button (CommandEvent primary + click fallback + role="status" + NBSP dedup)
+        const copyTimers = new WeakMap();
+        let lastCopyMessage = '';
+
+        function legacyCopy(text) {
+          const field = Object.assign(document.createElement('textarea'), { value: text });
+          field.setAttribute('readonly', '');
+          field.style.cssText = 'position:fixed;inset-block-start:0;opacity:0;pointer-events:none';
+          document.body.append(field);
+          field.select();
+          try {
+            return document.execCommand('copy');
+          } catch {
+            return false;
+          } finally {
+            field.remove();
+          }
+        }
+
+        function reportCopy(button, ok) {
+          const tip = button.nextElementSibling;
+          clearTimeout(copyTimers.get(button));
+          button.removeAttribute('data-copied');
+          button.removeAttribute('data-failed');
+
+          let message = ok ? 'Tersalin' : 'Gagal menyalin';
+          if (message === lastCopyMessage) message += '\u00A0';
+          lastCopyMessage = message;
+
+          if (tip) tip.textContent = '';
+          void button.offsetWidth;
+          button.setAttribute(ok ? 'data-copied' : 'data-failed', '');
+          requestAnimationFrame(() => {
+            if (tip) tip.textContent = message;
+          });
+          copyTimers.set(
+            button,
+            setTimeout(() => {
+              button.removeAttribute('data-copied');
+              button.removeAttribute('data-failed');
+              if (tip) tip.textContent = '';
+            }, 2000)
+          );
+        }
+
+        async function runCopy(button, target) {
+          if (!target) return;
+          const text = (target.innerText || target.textContent || '').trim();
+          if (!text) return;
+          try {
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+              await navigator.clipboard.writeText(text);
+            } else if (!legacyCopy(text)) {
+              throw new Error('Copy unavailable');
+            }
+            reportCopy(button, true);
+          } catch {
+            if (legacyCopy(text)) {
+              reportCopy(button, true);
+            } else {
+              reportCopy(button, false);
+            }
+          }
+        }
+
+        if ('CommandEvent' in window) {
+          document.addEventListener(
+            'command',
+            (event) => {
+              if (event.command === '--copy' && event.source) {
+                runCopy(event.source, event.target);
+              }
+            },
+            true
+          );
+        } else {
+          document.addEventListener('click', (event) => {
+            const btn = event.target.closest('button[command="--copy"]');
+            if (!btn) return;
+            const target = document.getElementById(btn.getAttribute('commandfor') || '');
+            runCopy(btn, target);
+          });
+        }
+
+        // Initial error mode from optional ?code= param
+        const reqCode = new URLSearchParams(window.location.search).get('code');
+        applyMode(reqCode && ERROR_STATES[reqCode] ? reqCode : '404');
+
+        // Reduced Motion & Ambient Particle Constellation + Gentle Pause Control (WCAG 2.2.2)
+        const reducedMotionMq = window.matchMedia('(prefers-reduced-motion: reduce)');
+        let userPausedMotion = reducedMotionMq.matches;
+        const tiltCard = document.getElementById('tilt-card');
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let rafId = 0;
+
+        const particles = Array.from({ length: 26 }, (_, idx) => ({
+          x: ((idx * 97) % 100) / 100,
+          y: ((idx * 53) % 100) / 100,
+          vx: ((idx % 5) - 2) * 0.00028,
+          vy: (((idx * 3) % 5) - 2) * 0.00028,
+          r: (idx % 2) + 1.3,
+          color: idx % 3 === 0 ? '#e60012' : '#0066cc',
+        }));
+
+        function resizeCanvas() {
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = Math.floor(window.innerWidth * dpr);
+          canvas.height = Math.floor(window.innerHeight * dpr);
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function drawParticles(step) {
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          ctx.clearRect(0, 0, w, h);
+
+          for (const p of particles) {
+            if (step) {
+              p.x += p.vx;
+              p.y += p.vy;
+              if (p.x < 0 || p.x > 1) p.vx *= -1;
+              if (p.y < 0 || p.y > 1) p.vy *= -1;
+            }
+          }
+
+          for (let i = 0; i < particles.length; i++) {
+            const a = particles[i];
+            const ax = a.x * w;
+            const ay = a.y * h;
+            for (let j = i + 1; j < particles.length; j++) {
+              const b = particles[j];
+              const bx = b.x * w;
+              const by = b.y * h;
+              const dist = Math.hypot(ax - bx, ay - by);
+              if (dist < 140) {
+                ctx.strokeStyle = `rgba(255, 255, 255, ${(1 - dist / 140) * 0.07})`;
+                ctx.lineWidth = 0.8;
+                ctx.beginPath();
+                ctx.moveTo(ax, ay);
+                ctx.lineTo(bx, by);
+                ctx.stroke();
+              }
+            }
+            ctx.fillStyle = a.color;
+            ctx.globalAlpha = 0.45;
+            ctx.beginPath();
+            ctx.arc(ax, ay, a.r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.globalAlpha = 1;
+        }
+
+        const motionIconPause = document.getElementById('motion-icon-pause');
+        const motionIconPlay = document.getElementById('motion-icon-play');
+
+        function syncMotionState() {
+          const paused = userPausedMotion || reducedMotionMq.matches;
+          rootEl.classList.toggle('motion-paused', paused);
+          motionBtnLabel.textContent = paused ? 'Putar' : 'Jeda';
+          if (motionIconPause) motionIconPause.style.display = paused ? 'none' : '';
+          if (motionIconPlay) motionIconPlay.style.display = paused ? '' : 'none';
+          motionToggleBtn.setAttribute(
+            'aria-label',
+            paused ? 'Putar animasi latar' : 'Jeda animasi latar'
+          );
+
+          if (rafId) {
+            cancelAnimationFrame(rafId);
+            rafId = 0;
+          }
+          if (paused) {
+            tiltCard.style.transform = '';
+            drawParticles(false);
+          } else {
+            const tick = () => {
+              drawParticles(true);
+              rafId = requestAnimationFrame(tick);
+            };
+            rafId = requestAnimationFrame(tick);
+          }
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', () => {
+          resizeCanvas();
+          if (userPausedMotion || reducedMotionMq.matches) drawParticles(false);
+        });
+
+        motionToggleBtn.addEventListener('click', () => {
+          userPausedMotion = !userPausedMotion;
+          syncMotionState();
+        });
+
+        reducedMotionMq.addEventListener('change', (ev) => {
+          userPausedMotion = ev.matches;
+          syncMotionState();
+        });
+
+        // Subtle 3D tilt only on fine pointer when motion is active
+        const finePointer = window.matchMedia('(pointer: fine)');
+        window.addEventListener('mousemove', (ev) => {
+          if (!finePointer.matches || userPausedMotion || reducedMotionMq.matches) return;
+          const xNorm = ev.clientX / window.innerWidth - 0.5;
+          const yNorm = ev.clientY / window.innerHeight - 0.5;
+          tiltCard.style.transform = `perspective(1400px) rotateX(${(-yNorm * 2.2).toFixed(2)}deg) rotateY(${(xNorm * 2.6).toFixed(2)}deg)`;
+        });
+        document.addEventListener('mouseleave', () => {
+          tiltCard.style.transform = '';
+        });
+
+        syncMotionState();
+      })();
+    </script>
+  </body>
+</html>

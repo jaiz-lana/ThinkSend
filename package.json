@@ -1,7 +1,7 @@
 {
   "name": "thinksend",
   "private": true,
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Aplikasi web PWA untuk transfer file cepat lintas jalur (QR Optik, WLAN, Provider P2P) dengan tema terang Telegram dan motif Batik Parang.",
   "type": "module",
   "scripts": {
