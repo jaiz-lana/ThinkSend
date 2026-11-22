@@ -167,17 +167,20 @@ export function saveAlias(alias: string): string {
 
 export function generateRoomCode(): string {
   const alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-  const rand = new Uint8Array(6);
-  crypto.getRandomValues(rand);
   let out = '';
-  for (let i = 0; i < 6; i++) {
-    out += alphabet[rand[i] % alphabet.length];
+  while (out.length < 12) {
+    const rand = new Uint8Array(1);
+    crypto.getRandomValues(rand);
+    if (rand[0] < 256 - (256 % alphabet.length)) {
+      out += alphabet[rand[0] % alphabet.length];
+    }
   }
   return out;
 }
 
 export function normalizeRoomCode(input: string): string {
-  return input.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
+  const normalized = input.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
+  return normalized.length >= 4 && normalized.length <= 16 ? normalized : '';
 }
 
 function normalizeIpGroup(rawIp: string): string {
