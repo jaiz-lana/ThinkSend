@@ -3,8 +3,13 @@ import jsQR from 'jsqr';
 import { sha256Hex, formatBytes, uint8ToBase64, base64ToUint8 } from '../utils/crypto';
 import { setupDropZone } from '../utils/copy';
 import { escapeHtml } from '../utils/webrtcTransfer';
+import {
+  OPTICAL_QR_MAX_BYTES,
+  OPTICAL_QR_CHUNK_SIZE,
+  validateOpticalQrMetadata,
+} from '../utils/qrMetadata';
 
-const CHUNK_SIZE = 550; // Optimal balance between QR density & fast camera decode
+const CHUNK_SIZE = OPTICAL_QR_CHUNK_SIZE; // Optimal balance between QR density & fast camera decode
 const FPS = 12;
 
 export function renderQrMode(container: HTMLElement): () => void {
@@ -137,6 +142,10 @@ export function renderQrMode(container: HTMLElement): () => void {
     const status = document.getElementById('qr-send-status')!;
 
     const startSendingFile = async (file: File) => {
+      if (file.name.length > 255 || !Number.isSafeInteger(file.size) || file.size > OPTICAL_QR_MAX_BYTES) {
+        status.innerHTML = '<div class="alert alert-warning"><span aria-hidden="true">⚠️</span><div>File tidak valid: nama maksimal 255 karakter dan ukuran maksimal 100 MB.</div></div>';
+        return;
+      }
       stopMediaOnly();
       const myGen = ++runGen;
 
@@ -358,11 +367,10 @@ export function renderQrMode(container: HTMLElement): () => void {
         const size = Number(parts[3]);
         const total = Number(parts[4]);
         const hash = parts[5] || '';
-        if (!Number.isFinite(size) || size < 0 || !Number.isFinite(total) || total <= 0 || !hash) {
-          return;
-        }
-        if (!meta || meta.hash !== hash) {
-          meta = { name: decodedName, size, total, hash };
+        const validated = validateOpticalQrMetadata(decodedName, size, total, hash);
+        if (!validated) return;
+        if (!meta || meta.hash !== validated.hash) {
+          meta = { name: validated.name, size: validated.size, total: validated.total, hash: validated.hash };
           received.clear();
           startTime = Date.now();
           updateUI();
@@ -378,6 +386,7 @@ export function renderQrMode(container: HTMLElement): () => void {
           } catch {
             return;
           }
+          if (bytes.byteLength > CHUNK_SIZE) return;
           received.set(idx, bytes);
           updateUI();
 
@@ -398,6 +407,11 @@ export function renderQrMode(container: HTMLElement): () => void {
             for (const c of orderedChunks) {
               full.set(c, offset);
               offset += c.byteLength;
+            }
+
+            if (totalBytes !== meta.size) {
+              status.innerHTML = '<div class="alert alert-warning"><span aria-hidden="true">⚠️</span><div>Metadata tidak valid: ukuran hasil rakitan tidak sama dengan ukuran yang dinyatakan.</div></div>';
+              return;
             }
 
             const actualHash = await sha256Hex(full.buffer);

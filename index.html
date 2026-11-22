@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https: wss:; font-src 'self'; worker-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'" />
     <meta name="theme-color" content="#197AC0" />
     <meta name="description" content="ThinkSend — Transfer file cepat lintas jalur: QR Optik, WLAN lokal, dan Provider P2P bertema terang Telegram dengan motif Batik Parang." />
     <title>ThinkSend — Transfer File Lintas Jalur</title>
@@ -204,7 +205,7 @@
         <main id="mode-container" class="container" role="tabpanel" aria-labelledby="mode-tab-qr"></main>
         <footer class="about-footer">
           <button id="about-footer-btn" class="about-pill-btn" type="button" command="show-modal" commandfor="about-modal">
-            ThinkSend v0.4.2 • Tentang Aplikasi
+            ThinkSend v0.4.3 • Tentang Aplikasi
           </button>
           <a
             id="report-bug-btn"
@@ -241,7 +242,7 @@
             <img src="./icon.svg" alt="" class="modal-logo" width="44" height="44" />
             <div>
               <h2 id="about-title">ThinkSend</h2>
-              <span class="modal-version">Versi 0.4.2 • PWA Offline-First</span>
+              <span class="modal-version">Versi 0.4.3 • PWA Offline-First</span>
             </div>
           </div>
           <form method="dialog">
