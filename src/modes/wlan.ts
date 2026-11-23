@@ -161,10 +161,25 @@ export function renderWlanMode(container: HTMLElement): () => void {
     destroyed = true;
     discoveryGen++;
     clearRelayTimeout();
+    window.removeEventListener('online', handleNetworkConnectionChange);
+    window.removeEventListener('offline', handleNetworkConnectionChange);
     cleanupWebRtcSession();
     void cleanupSignaling();
     revokeAllObjectUrls();
   }
+
+  function handleNetworkConnectionChange() {
+    if (destroyed) return;
+    if (activeView === 'radar') {
+      void activateRadar();
+    } else {
+      renderRelayStatusBadge();
+      renderAutoPeerList();
+    }
+  }
+
+  window.addEventListener('online', handleNetworkConnectionChange);
+  window.addEventListener('offline', handleNetworkConnectionChange);
 
   container.innerHTML = `
     <div class="card">
@@ -858,7 +873,9 @@ export function renderWlanMode(container: HTMLElement): () => void {
 
     if (radarFailed && activeView === 'radar') {
       el.className = 'relay-pill relay-wait';
-      el.textContent = 'Radar butuh internet • Gunakan Tanpa Internet jika offline';
+      el.textContent = navigator.onLine
+        ? 'Radar belum dapat mendeteksi jaringan • Coba pindai ulang'
+        : 'Radar offline • Gunakan Kode Ruang atau QR Tanpa Internet';
       return;
     }
 
@@ -904,14 +921,18 @@ export function renderWlanMode(container: HTMLElement): () => void {
       listEl.innerHTML = `
         <div class="peer-empty peer-empty-offline">
           <div>
-            <strong>Tidak dapat menjangkau jaringan pencarian otomatis</strong>
-            <p>Jika Wi-Fi ini sedang tanpa internet, gunakan mode <strong>Tanpa Internet (QR)</strong> untuk transfer lokal 100% offline lewat router/hotspot yang sama.</p>
-            <button id="wlan-jump-offline" type="button" class="btn btn-primary" style="margin-top:10px;">
-              📵 Buka Mode Tanpa Internet
-            </button>
+            <strong>Radar belum dapat mendeteksi jaringan sekitar</strong>
+            <p>${navigator.onLine
+              ? 'Pastikan kedua perangkat menggunakan Wi-Fi yang sama, lalu pindai ulang. Untuk transfer lokal 100% tanpa internet, gunakan mode <strong>Tanpa Internet (QR)</strong>.'
+              : 'Browser sedang offline. Gunakan <strong>Kode Ruang</strong> atau mode <strong>Tanpa Internet (QR)</strong> untuk melanjutkan transfer lokal.'}</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+              <button id="wlan-radar-retry" type="button" class="btn btn-primary">Pindai Ulang</button>
+              <button id="wlan-jump-offline" type="button" class="btn">📵 Buka Mode Tanpa Internet</button>
+            </div>
           </div>
         </div>
       `;
+      document.getElementById('wlan-radar-retry')!.onclick = () => void activateRadar();
       document.getElementById('wlan-jump-offline')!.onclick = () => {
         activeView = 'offline';
         renderCurrentView();
@@ -1124,7 +1145,11 @@ export function renderWlanMode(container: HTMLElement): () => void {
 
     if (!detected) {
       radarFailed = true;
-      if (infoEl) infoEl.textContent = 'Tidak ada koneksi internet untuk Radar otomatis.';
+      if (infoEl) {
+        infoEl.textContent = navigator.onLine
+          ? 'Jaringan sekitar belum terdeteksi. Pastikan perangkat berada di Wi-Fi yang sama.'
+          : 'Browser offline. Radar otomatis memerlukan jaringan sinyal, gunakan mode Tanpa Internet.';
+      }
       renderRelayStatusBadge();
       renderAutoPeerList();
       return;
