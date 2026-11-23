@@ -183,6 +183,10 @@ export function normalizeRoomCode(input: string): string {
   return normalized.length >= 4 && normalized.length <= 16 ? normalized : '';
 }
 
+export function isPrivateIpv4Address(ip: string): boolean {
+  return /^(10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)/.test(ip.trim());
+}
+
 function normalizeIpGroup(rawIp: string): string {
   const ip = rawIp.trim();
   if (ip.includes(':')) {
@@ -197,6 +201,7 @@ function extractStunSrflxIp(): Promise<string | null> {
     let settled = false;
     let bestV4: string | null = null;
     let bestV6: string | null = null;
+    let bestLocalV4: string | null = null;
     let pc: RTCPeerConnection | null = null;
 
     const finish = () => {
@@ -208,7 +213,7 @@ function extractStunSrflxIp(): Promise<string | null> {
       } catch {
         // Ignore
       }
-      resolve(bestV4 ?? bestV6);
+      resolve(bestLocalV4 ?? bestV4 ?? bestV6);
     };
 
     const timer = setTimeout(finish, 2400);
@@ -227,9 +232,14 @@ function extractStunSrflxIp(): Promise<string | null> {
           return;
         }
         const cand = e.candidate.candidate;
+        const parts = cand.split(' ');
+        const ip = parts[4];
+        if (ip && parts.includes('host')) {
+          if (/^(10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)/.test(ip)) {
+            bestLocalV4 = ip;
+          }
+        }
         if (cand.includes(' typ srflx ')) {
-          const parts = cand.split(' ');
-          const ip = parts[4];
           if (ip) {
             if (ip.includes('.')) {
               bestV4 = ip;
@@ -271,15 +281,23 @@ export async function detectRadarRoomSecret(): Promise<{
   secret: string;
   ipLabel: string;
 } | null> {
-  const [v4Http, stunIp] = await Promise.all([fetchPublicIpv4(), extractStunSrflxIp()]);
-  const groupIp = v4Http ?? (stunIp ? normalizeIpGroup(stunIp) : null);
+  const networkProbe = extractStunSrflxIp();
+  const v4Http =
+    typeof navigator !== 'undefined' && navigator.onLine
+      ? fetchPublicIpv4()
+      : Promise.resolve(null);
+  const [publicIp, networkIp] = await Promise.all([v4Http, networkProbe]);
+  const groupIp = networkIp ?? publicIp;
   if (!groupIp) return null;
 
   // IP mentah hanya di-hash lokal (SHA-256) sehingga relay tidak tahu IP pengguna
   const hash = await sha256TextHex(`thinksend-radar-v1:${groupIp}`);
-  const masked = groupIp.includes('.')
-    ? groupIp.split('.').slice(0, 2).join('.') + '.*.*'
-    : 'IPv6 LAN';
+  const isPrivateV4 = isPrivateIpv4Address(groupIp);
+  const masked = isPrivateV4
+    ? groupIp.split('.').slice(0, 3).join('.') + '.*'
+    : groupIp.includes('.')
+      ? groupIp.split('.').slice(0, 2).join('.') + '.*.*'
+      : 'IPv6 LAN';
 
   return {
     secret: `radar:${hash.slice(0, 32)}`,
